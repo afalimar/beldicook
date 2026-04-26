@@ -124,7 +124,7 @@
 </div>
 
 <script>
-let supabase = null;
+let supabaseClient = null;
 let config = {
   url: localStorage.getItem('sb_url'),
   key: localStorage.getItem('sb_key'),
@@ -140,7 +140,7 @@ function init() {
     return;
   }
   try {
-    supabase = window.supabase.createClient(config.url, config.key);
+    supabaseClient = window.supabase.createClient(config.url, config.key);
     loadOrders();
     subscribeToChanges();
     startClock();
@@ -174,7 +174,7 @@ function resetConfig() {
 // ============================================================
 async function loadOrders() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('orders')
       .select(`
         *,
@@ -200,7 +200,7 @@ async function loadOrders() {
 // REAL-TIME SUBSCRIPTION (L'MAJIK!)
 // ============================================================
 function subscribeToChanges() {
-  supabase
+  supabaseClient
     .channel('kitchen-orders')
     .on('postgres_changes', 
       { event: '*', schema: 'public', table: 'orders', filter: `restaurant_id=eq.${config.restaurantId}` },
@@ -349,7 +349,7 @@ async function updateStatus(orderId, newStatus) {
     if (newStatus === 'ready') updates.ready_at = new Date().toISOString();
     if (newStatus === 'delivered') updates.delivered_at = new Date().toISOString();
     
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from('orders')
       .update(updates)
       .eq('id', orderId);

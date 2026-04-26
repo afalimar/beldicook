@@ -181,7 +181,7 @@
 </div>
 
 <script>
-let supabase = null;
+let supabaseClient = null;
 let config = {
   url: localStorage.getItem('sb_url'),
   key: localStorage.getItem('sb_key'),
@@ -203,7 +203,7 @@ function init() {
     return;
   }
   try {
-    supabase = window.supabase.createClient(config.url, config.key);
+    supabaseClient = window.supabase.createClient(config.url, config.key);
     document.getElementById('livreurName').textContent = config.livreurName;
     loadDeliveries();
     subscribeToChanges();
@@ -264,7 +264,7 @@ async function loadDeliveries() {
     // 1. Ma 3andhom-ch livreur assigned (disponible l'anyone) 
     // OU
     // 2. Assigned l'had livreur
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('v_pending_deliveries')
       .select('*')
       .or(`livreur_id.is.null,livreur_id.eq.${config.livreurId}`);
@@ -284,7 +284,7 @@ async function loadTodayStats() {
     const today = new Date();
     today.setHours(0,0,0,0);
     
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('deliveries')
       .select('id, order_id, orders!inner(total, delivery_fee)')
       .eq('livreur_id', config.livreurId)
@@ -307,7 +307,7 @@ async function loadTodayStats() {
 // REAL-TIME SUBSCRIPTION
 // ============================================================
 function subscribeToChanges() {
-  supabase
+  supabaseClient
     .channel('livreur-updates')
     .on('postgres_changes',
       { event: '*', schema: 'public', table: 'deliveries' },
@@ -432,7 +432,7 @@ function updateStats() {
 // ============================================================
 async function claimDelivery(deliveryId) {
   try {
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from('deliveries')
       .update({ livreur_id: config.livreurId })
       .eq('id', deliveryId)
@@ -451,7 +451,7 @@ async function updateStatus(deliveryId, newStatus) {
     const updates = { status: newStatus };
     if (newStatus === 'picked_up') updates.picked_up_at = new Date().toISOString();
     
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from('deliveries')
       .update(updates)
       .eq('id', deliveryId);
@@ -474,7 +474,7 @@ async function completeDelivery(deliveryId, orderId) {
   
   try {
     // Update delivery
-    const { error: e1 } = await supabase
+    const { error: e1 } = await supabaseClient
       .from('deliveries')
       .update({ 
         status: 'delivered',
@@ -484,7 +484,7 @@ async function completeDelivery(deliveryId, orderId) {
     if (e1) throw e1;
     
     // Update order
-    const { error: e2 } = await supabase
+    const { error: e2 } = await supabaseClient
       .from('orders')
       .update({ 
         status: 'delivered',
@@ -505,7 +505,7 @@ async function completeDelivery(deliveryId, orderId) {
 async function cancelDelivery(deliveryId) {
   if (!confirm('T-khelli had livraison l\'livreur akhor?')) return;
   try {
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from('deliveries')
       .update({ livreur_id: null })
       .eq('id', deliveryId);

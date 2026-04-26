@@ -27,10 +27,10 @@
 
   <script>
     // ⚠️ BADDEL HADOU 2 B'VALEURS DYALEK
-    const SUPABASE_URL = 'https://xxxxxx.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIs...';
+    let SUPABASE_URL = 'https://imhehbqryzhjzyxfhgzf.supabase.co';
+    let SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImltaGVoYnFyeXpoanp5eGZoZ3pmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMDU4NTMsImV4cCI6MjA5MjY4MTg1M30.qrHWBlkSPHnR4WdfFgQw6gdzz8OLCBRUmUqphUco8GU';
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const out = document.getElementById('output');
 
@@ -45,28 +45,28 @@
     }
 
     async function testMenu() {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('menu_items')
         .select('name, category, price');
       display(data, error);
     }
 
     async function testIngredients() {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('ingredients')
         .select('name, current_stock, min_stock, unit');
       display(data, error);
     }
 
     async function testLowStock() {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('v_low_stock_alerts')
         .select('*');
       display(data, error);
     }
 
     async function testProfitability() {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('v_menu_profitability')
         .select('*');
       display(data, error);

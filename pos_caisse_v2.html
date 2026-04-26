@@ -191,7 +191,7 @@
 </div>
 
 <script>
-let supabase = null;
+let supabaseClient = null;
 let config = {
   url: localStorage.getItem('sb_url'),
   key: localStorage.getItem('sb_key'),
@@ -210,7 +210,7 @@ function init() {
     return;
   }
   try {
-    supabase = window.supabase.createClient(config.url, config.key);
+    supabaseClient = window.supabase.createClient(config.url, config.key);
     loadMenu();
     startClock();
     document.getElementById('orderNum').textContent = orderCounter;
@@ -240,7 +240,7 @@ function resetConfig() {
 
 async function loadMenu() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('menu_items')
       .select('*')
       .eq('restaurant_id', config.restaurantId)
@@ -408,7 +408,7 @@ async function submitOrder(customer) {
       orderData.notes = customer.notes || null;
     }
     
-    const { data: order, error: orderErr } = await supabase
+    const { data: order, error: orderErr } = await supabaseClient
       .from('orders')
       .insert(orderData)
       .select()
@@ -422,12 +422,12 @@ async function submitOrder(customer) {
       unit_price: i.price,
       subtotal: i.price * i.qty
     }));
-    const { error: itemsErr } = await supabase
+    const { error: itemsErr } = await supabaseClient
       .from('order_items')
       .insert(orderItemsData);
     if (itemsErr) throw itemsErr;
     
-    const { error: acceptErr } = await supabase
+    const { error: acceptErr } = await supabaseClient
       .from('orders')
       .update({ status: 'accepted', accepted_at: new Date().toISOString() })
       .eq('id', order.id);
