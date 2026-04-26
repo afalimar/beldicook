@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kitchen Display - Al Baraka</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#1a1a1a;color:#fff;min-height:100vh;}
+  
+  .header{background:#2c2c2a;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #0F6E56;}
+  .header h1{font-size:18px;font-weight:500;display:flex;align-items:center;gap:10px;}
+  .live-dot{width:10px;height:10px;border-radius:50%;background:#1D9E75;animation:pulse 1.5s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+  .header-right{display:flex;gap:10px;align-items:center;font-size:13px;color:#999;}
+  
+  .stats{display:flex;gap:8px;padding:10px 20px;background:#252524;border-bottom:1px solid #333;}
+  .stat{flex:1;background:#1a1a1a;padding:10px 14px;border-radius:8px;text-align:center;}
+  .stat .num{font-size:22px;font-weight:500;}
+  .stat .lbl{font-size:11px;color:#888;margin-top:2px;}
+  .stat.pending .num{color:#EF9F27;}
+  .stat.preparing .num{color:#378ADD;}
+  .stat.ready .num{color:#1D9E75;}
+  
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;padding:16px;}
+  
+  .card{background:#2c2c2a;border-radius:12px;padding:14px;border-left:4px solid #888;display:flex;flex-direction:column;animation:slideIn .3s;position:relative;}
+  @keyframes slideIn{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+  
+  .card.new{border-left-color:#EF9F27;animation:flash .5s 3;}
+  @keyframes flash{0%,100%{background:#2c2c2a;}50%{background:#3d2f1a;}}
+  .card.preparing{border-left-color:#378ADD;}
+  .card.ready{border-left-color:#1D9E75;background:#1a3329;}
+  
+  .card-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #444;}
+  .card-num{font-size:22px;font-weight:500;}
+  .card-type{font-size:10px;padding:3px 8px;border-radius:10px;background:#444;color:#ccc;text-transform:uppercase;letter-spacing:0.5px;}
+  .card-type.delivery{background:#3d2f1a;color:#EF9F27;}
+  .card-type.takeaway{background:#1a2d3d;color:#378ADD;}
+  
+  .card-timer{font-size:12px;color:#999;margin-bottom:10px;}
+  .card-timer.warn{color:#EF9F27;font-weight:500;}
+  .card-timer.late{color:#E24B4A;font-weight:500;animation:shake 0.5s infinite;}
+  @keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-2px);}75%{transform:translateX(2px);}}
+  
+  .items{flex:1;margin-bottom:12px;}
+  .item{display:flex;padding:6px 0;font-size:14px;border-bottom:1px solid #3a3a3a;}
+  .item:last-child{border-bottom:none;}
+  .item-qty{min-width:32px;font-weight:500;color:#EF9F27;}
+  .item-name{flex:1;}
+  .item-note{font-size:11px;color:#888;margin-top:2px;padding-left:32px;font-style:italic;}
+  
+  .card-notes{font-size:12px;color:#EF9F27;background:#3d2f1a;padding:8px 10px;border-radius:6px;margin-bottom:10px;border-left:2px solid #EF9F27;}
+  
+  .card-customer{font-size:11px;color:#999;margin-bottom:8px;padding:6px 8px;background:#1a1a1a;border-radius:6px;}
+  .card-customer div{padding:1px 0;}
+  
+  .actions{display:flex;gap:6px;}
+  .action-btn{flex:1;padding:10px;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;color:#fff;transition:opacity .15s;}
+  .action-btn:active{opacity:0.7;}
+  .btn-prepare{background:#378ADD;}
+  .btn-ready{background:#1D9E75;}
+  .btn-cancel{background:#5a3a3a;}
+  
+  .empty-state{grid-column:1/-1;text-align:center;padding:60px 20px;color:#666;}
+  .empty-state h2{font-size:18px;font-weight:400;margin-bottom:8px;}
+  .empty-state p{font-size:13px;}
+  
+  /* Toast notification */
+  .notification{position:fixed;top:20px;right:20px;background:#EF9F27;color:#1a1a1a;padding:14px 20px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.5);z-index:100;animation:slideInRight .3s;max-width:320px;}
+  @keyframes slideInRight{from{transform:translateX(120%);}to{transform:translateX(0);}}
+  .notification.closing{animation:slideOutRight .3s forwards;}
+  @keyframes slideOutRight{to{transform:translateX(120%);opacity:0;}}
+  .notification-title{font-size:14px;font-weight:500;margin-bottom:4px;}
+  .notification-body{font-size:13px;}
+  
+  /* Config modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:200;padding:20px;}
+  .modal{background:#2c2c2a;border-radius:12px;padding:24px;max-width:440px;width:100%;}
+  .modal h2{font-size:18px;margin-bottom:8px;}
+  .modal p{font-size:13px;color:#aaa;margin-bottom:16px;}
+  .modal label{font-size:12px;color:#aaa;display:block;margin-bottom:4px;}
+  .modal input{width:100%;padding:10px;background:#1a1a1a;border:1px solid #444;color:#fff;border-radius:8px;font-size:13px;font-family:monospace;margin-bottom:10px;}
+  .modal button{width:100%;padding:12px;background:#378ADD;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;}
+  
+  .sound-toggle{background:#1a1a1a;border:1px solid #444;color:#ccc;padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;}
+  .sound-toggle.off{color:#666;}
+</style>
+</head>
+<body>
+
+<div class="modal-bg" id="configModal" style="display:none;">
+  <div class="modal">
+    <h2>🍳 Kitchen Display Setup</h2>
+    <p>Dkhol info dyal Supabase (nafs li 3mertihom f'POS):</p>
+    <label>Supabase URL</label>
+    <input type="text" id="urlInput" placeholder="https://xxxxxx.supabase.co">
+    <label>Anon Key</label>
+    <input type="text" id="keyInput" placeholder="eyJhbGc...">
+    <button onclick="saveConfig()">Connect</button>
+  </div>
+</div>
+
+<div class="header">
+  <h1>🍳 Kitchen Display <span class="live-dot"></span> LIVE</h1>
+  <div class="header-right">
+    <button class="sound-toggle" id="soundBtn" onclick="toggleSound()">🔔 Son: ON</button>
+    <span id="clock">—</span>
+    <button class="sound-toggle" onclick="resetConfig()">⚙️</button>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat pending"><div class="num" id="countPending">0</div><div class="lbl">Jdid</div></div>
+  <div class="stat preparing"><div class="num" id="countPreparing">0</div><div class="lbl">Kay-tsa(h)et</div></div>
+  <div class="stat ready"><div class="num" id="countReady">0</div><div class="lbl">Wjed</div></div>
+</div>
+
+<div class="grid" id="grid">
+  <div class="empty-state">
+    <h2>Loading...</h2>
+  </div>
+</div>
+
+<script>
+let supabase = null;
+let config = {
+  url: localStorage.getItem('sb_url'),
+  key: localStorage.getItem('sb_key'),
+  restaurantId: '11111111-1111-1111-1111-111111111111'
+};
+let orders = [];
+let soundEnabled = true;
+let audioCtx = null;
+
+function init() {
+  if (!config.url || !config.key) {
+    document.getElementById('configModal').style.display = 'flex';
+    return;
+  }
+  try {
+    supabase = window.supabase.createClient(config.url, config.key);
+    loadOrders();
+    subscribeToChanges();
+    startClock();
+    setInterval(updateTimers, 10000); // Update timers koul 10s
+  } catch (e) {
+    console.error(e);
+    document.getElementById('configModal').style.display = 'flex';
+  }
+}
+
+function saveConfig() {
+  const url = document.getElementById('urlInput').value.trim();
+  const key = document.getElementById('keyInput').value.trim();
+  if (!url || !key) return;
+  localStorage.setItem('sb_url', url);
+  localStorage.setItem('sb_key', key);
+  config.url = url; config.key = key;
+  document.getElementById('configModal').style.display = 'none';
+  init();
+}
+
+function resetConfig() {
+  if (confirm('Reset config?')) {
+    localStorage.clear();
+    location.reload();
+  }
+}
+
+// ============================================================
+// LOAD ORDERS (Initial + Refresh)
+// ============================================================
+async function loadOrders() {
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        order_items (
+          quantity,
+          special_notes,
+          menu_items ( name )
+        )
+      `)
+      .eq('restaurant_id', config.restaurantId)
+      .in('status', ['accepted', 'preparing', 'ready'])
+      .order('created_at', { ascending: true });
+    
+    if (error) throw error;
+    orders = data || [];
+    render();
+  } catch (e) {
+    console.error('Load error:', e);
+  }
+}
+
+// ============================================================
+// REAL-TIME SUBSCRIPTION (L'MAJIK!)
+// ============================================================
+function subscribeToChanges() {
+  supabase
+    .channel('kitchen-orders')
+    .on('postgres_changes', 
+      { event: '*', schema: 'public', table: 'orders', filter: `restaurant_id=eq.${config.restaurantId}` },
+      (payload) => {
+        console.log('🔔 Change:', payload);
+        handleRealtimeChange(payload);
+      }
+    )
+    .subscribe();
+}
+
+async function handleRealtimeChange(payload) {
+  // INSERT: nothing (orders kay-t(h)tar ghir mnin tkoun accepted)
+  // UPDATE: Reload affected order
+  // DELETE: Remove
+  
+  if (payload.eventType === 'UPDATE') {
+    const updated = payload.new;
+    const old = payload.old;
+    
+    // Order jdida kay-dkhol kitchen (status: pending → accepted)
+    if (updated.status === 'accepted' && old.status === 'pending') {
+      await loadOrders(); // Reload bach n-jibou items
+      playNotification();
+      showToast(`🔔 Commande jdida #${updated.order_number}!`, updated.total + ' MAD');
+    }
+    // Order existante baddat status
+    else if (['accepted', 'preparing', 'ready'].includes(updated.status)) {
+      await loadOrders();
+    }
+    // Order kharjat (delivered/cancelled)
+    else if (['delivered', 'cancelled'].includes(updated.status)) {
+      orders = orders.filter(o => o.id !== updated.id);
+      render();
+    }
+  }
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function render() {
+  const grid = document.getElementById('grid');
+  
+  const pending = orders.filter(o => o.status === 'accepted');
+  const preparing = orders.filter(o => o.status === 'preparing');
+  const ready = orders.filter(o => o.status === 'ready');
+  
+  document.getElementById('countPending').textContent = pending.length;
+  document.getElementById('countPreparing').textContent = preparing.length;
+  document.getElementById('countReady').textContent = ready.length;
+  
+  if (orders.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <h2>✨ Couzina clean!</h2>
+        <p>Ma kayn ta commande, stenna commandes jdad...</p>
+      </div>`;
+    return;
+  }
+  
+  // Sort: accepted first, then preparing, then ready
+  const statusOrder = { 'accepted': 0, 'preparing': 1, 'ready': 2 };
+  const sorted = [...orders].sort((a, b) => {
+    const diff = statusOrder[a.status] - statusOrder[b.status];
+    if (diff !== 0) return diff;
+    return new Date(a.created_at) - new Date(b.created_at);
+  });
+  
+  grid.innerHTML = sorted.map(o => renderCard(o)).join('');
+}
+
+function renderCard(o) {
+  const mins = Math.floor((Date.now() - new Date(o.created_at)) / 60000);
+  let timerClass = '';
+  if (mins >= 20) timerClass = 'late';
+  else if (mins >= 12) timerClass = 'warn';
+  
+  const statusClass = o.status === 'accepted' ? 'new' : o.status === 'preparing' ? 'preparing' : 'ready';
+  
+  const items = (o.order_items || []).map(i => `
+    <div class="item">
+      <span class="item-qty">${i.quantity}×</span>
+      <span class="item-name">${i.menu_items?.name || 'Unknown'}</span>
+    </div>
+    ${i.special_notes ? `<div class="item-note">↳ ${escapeHtml(i.special_notes)}</div>` : ''}
+  `).join('');
+  
+  const customerInfo = o.order_type === 'delivery' ? `
+    <div class="card-customer">
+      <div>📦 ${escapeHtml(o.customer_name || '—')}</div>
+      <div>📞 ${escapeHtml(o.customer_phone || '—')}</div>
+    </div>` : '';
+  
+  const notes = o.notes ? `<div class="card-notes">📝 ${escapeHtml(o.notes)}</div>` : '';
+  
+  let actions = '';
+  if (o.status === 'accepted') {
+    actions = `<button class="action-btn btn-prepare" onclick="updateStatus('${o.id}','preparing')">Bdit n-sa(h)bha</button>`;
+  } else if (o.status === 'preparing') {
+    actions = `<button class="action-btn btn-ready" onclick="updateStatus('${o.id}','ready')">Wjdat ✓</button>`;
+  } else if (o.status === 'ready') {
+    const finalStatus = o.order_type === 'delivery' ? 'out_for_delivery' : 'delivered';
+    const label = o.order_type === 'delivery' ? 'Ready l\'livreur' : 'Slemt l\'client';
+    actions = `<button class="action-btn btn-ready" onclick="updateStatus('${o.id}','${finalStatus}')">${label}</button>`;
+  }
+  
+  return `
+    <div class="card ${statusClass}">
+      <div class="card-head">
+        <div class="card-num">#${o.order_number}</div>
+        <div class="card-type ${o.order_type}">${o.order_type.replace('_',' ')}</div>
+      </div>
+      <div class="card-timer ${timerClass}">⏱ ${mins} min · ${o.total} MAD</div>
+      ${customerInfo}
+      ${notes}
+      <div class="items">${items}</div>
+      <div class="actions">${actions}</div>
+    </div>`;
+}
+
+function updateTimers() {
+  // Ghir update timers bla reload kamel
+  document.querySelectorAll('.card').forEach((card, i) => {
+    const sorted = [...orders].sort((a, b) => {
+      const statusOrder = { 'accepted': 0, 'preparing': 1, 'ready': 2 };
+      return statusOrder[a.status] - statusOrder[b.status] || new Date(a.created_at) - new Date(b.created_at);
+    });
+    const o = sorted[i];
+    if (!o) return;
+    const mins = Math.floor((Date.now() - new Date(o.created_at)) / 60000);
+    const timerEl = card.querySelector('.card-timer');
+    if (timerEl) {
+      timerEl.textContent = `⏱ ${mins} min · ${o.total} MAD`;
+      timerEl.className = 'card-timer' + (mins >= 20 ? ' late' : mins >= 12 ? ' warn' : '');
+    }
+  });
+}
+
+// ============================================================
+// UPDATE ORDER STATUS
+// ============================================================
+async function updateStatus(orderId, newStatus) {
+  try {
+    const updates = { status: newStatus };
+    if (newStatus === 'ready') updates.ready_at = new Date().toISOString();
+    if (newStatus === 'delivered') updates.delivered_at = new Date().toISOString();
+    
+    const { error } = await supabase
+      .from('orders')
+      .update(updates)
+      .eq('id', orderId);
+    
+    if (error) throw error;
+    // Realtime subscription ghadi y-handle refresh automatic
+  } catch (e) {
+    console.error(e);
+    alert('Erreur: ' + e.message);
+  }
+}
+
+// ============================================================
+// SOUND NOTIFICATION
+// ============================================================
+function playNotification() {
+  if (!soundEnabled) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    // Double beep (ding-ding)
+    [0, 200].forEach(delay => {
+      setTimeout(() => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.frequency.value = 880;
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.15);
+      }, delay);
+    });
+  } catch (e) { console.error('Sound error:', e); }
+}
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  const btn = document.getElementById('soundBtn');
+  btn.textContent = soundEnabled ? '🔔 Son: ON' : '🔕 Son: OFF';
+  btn.classList.toggle('off', !soundEnabled);
+  localStorage.setItem('sound_enabled', soundEnabled);
+  if (soundEnabled) playNotification(); // Test sound
+}
+
+function showToast(title, body) {
+  const el = document.createElement('div');
+  el.className = 'notification';
+  el.innerHTML = `<div class="notification-title">${title}</div><div class="notification-body">${body}</div>`;
+  document.body.appendChild(el);
+  setTimeout(() => {
+    el.classList.add('closing');
+    setTimeout(() => el.remove(), 300);
+  }, 4000);
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function escapeHtml(s) {
+  if (!s) return '';
+  return s.replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
+function startClock() {
+  function update() {
+    const now = new Date();
+    document.getElementById('clock').textContent = 
+      String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  }
+  update();
+  setInterval(update, 30000);
+}
+
+// Load sound preference
+soundEnabled = localStorage.getItem('sound_enabled') !== 'false';
+if (!soundEnabled) {
+  document.getElementById('soundBtn').textContent = '🔕 Son: OFF';
+  document.getElementById('soundBtn').classList.add('off');
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>POS - Al Baraka</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f5f3;color:#2c2c2a;height:100vh;overflow:hidden;}
+  .app{display:grid;grid-template-columns:1fr 320px;height:100vh;gap:8px;padding:8px;}
+  
+  /* Left side - Menu */
+  .menu-side{background:#fff;border-radius:12px;padding:14px;display:flex;flex-direction:column;overflow:hidden;}
+  .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #eee;}
+  .header h1{font-size:16px;font-weight:500;}
+  .header .sub{font-size:12px;color:#888;}
+  .online-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#1D9E75;margin-left:6px;}
+  .offline-dot{background:#E24B4A;}
+  
+  .cats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+  .cat{padding:7px 14px;font-size:13px;border-radius:18px;background:#f1f0ec;cursor:pointer;border:none;color:#2c2c2a;transition:all .15s;white-space:nowrap;}
+  .cat.active{background:#378ADD;color:#fff;}
+  
+  .menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;overflow-y:auto;flex:1;padding-right:4px;}
+  .menu-card{background:#f7f6f3;border-radius:10px;padding:12px;cursor:pointer;border:2px solid transparent;min-height:85px;display:flex;flex-direction:column;justify-content:space-between;transition:all .12s;user-select:none;}
+  .menu-card:active{transform:scale(0.96);background:#eeece6;}
+  .menu-card.unavailable{opacity:.4;cursor:not-allowed;}
+  .menu-card.unavailable:active{transform:none;}
+  .menu-card .name{font-size:13px;font-weight:500;line-height:1.3;}
+  .menu-card .price{font-size:13px;color:#666;margin-top:6px;}
+  .stock-warn{font-size:10px;color:#854F0B;margin-top:2px;}
+  
+  /* Right side - Cart */
+  .cart-side{background:#fff;border-radius:12px;padding:14px;display:flex;flex-direction:column;overflow:hidden;}
+  .ord-num{font-size:12px;color:#888;margin-bottom:2px;}
+  .ord-title{font-size:14px;font-weight:500;margin-bottom:12px;}
+  
+  .ord-types{display:flex;gap:4px;margin-bottom:10px;}
+  .ord-btn{flex:1;padding:8px;font-size:11px;border:1px solid #e5e3db;background:#fff;border-radius:8px;cursor:pointer;color:#2c2c2a;}
+  .ord-btn.active{background:#378ADD;color:#fff;border-color:#378ADD;}
+  
+  .cart-items{flex:1;overflow-y:auto;margin-bottom:10px;}
+  .cart-item{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #f1f0ec;}
+  .cart-item:last-child{border-bottom:none;}
+  .cart-item-info{flex:1;min-width:0;}
+  .cart-item-name{font-size:13px;font-weight:500;}
+  .cart-item-price{font-size:11px;color:#888;margin-top:2px;}
+  .cart-item-total{font-size:13px;font-weight:500;min-width:60px;text-align:right;}
+  
+  .qty{display:flex;align-items:center;gap:4px;background:#f1f0ec;border-radius:8px;padding:2px;}
+  .qty button{background:none;border:none;width:24px;height:24px;font-size:14px;cursor:pointer;border-radius:4px;color:#2c2c2a;}
+  .qty button:active{background:#e5e3db;}
+  .qty span{font-size:13px;font-weight:500;min-width:18px;text-align:center;}
+  
+  .empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#b4b2a9;font-size:13px;text-align:center;padding:20px;}
+  
+  .summary{border-top:1px solid #f1f0ec;padding-top:12px;}
+  .sum-row{display:flex;justify-content:space-between;font-size:13px;color:#666;margin-bottom:4px;}
+  .sum-total{display:flex;justify-content:space-between;font-size:17px;font-weight:500;color:#2c2c2a;margin-top:4px;}
+  
+  .pay-btn{width:100%;padding:14px;font-size:15px;font-weight:500;background:#378ADD;color:#fff;border:none;border-radius:10px;cursor:pointer;margin-top:10px;transition:opacity .15s;}
+  .pay-btn:active{opacity:.8;}
+  .pay-btn:disabled{opacity:.3;cursor:not-allowed;}
+  
+  /* Toast */
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#2c2c2a;color:#fff;padding:12px 20px;border-radius:8px;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:100;animation:slideUp .3s;}
+  @keyframes slideUp{from{transform:translate(-50%,20px);opacity:0;}to{transform:translate(-50%,0);opacity:1;}}
+  .toast.error{background:#A32D2D;}
+  .toast.success{background:#0F6E56;}
+  
+  /* Loading */
+  .loading{display:flex;align-items:center;justify-content:center;height:100%;color:#888;font-size:14px;}
+  
+  /* Config modal */
+  .modal-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:200;padding:20px;}
+  .modal{background:#fff;border-radius:12px;padding:24px;max-width:500px;width:100%;}
+  .modal h2{font-size:18px;margin-bottom:8px;}
+  .modal p{font-size:13px;color:#666;margin-bottom:16px;line-height:1.5;}
+  .modal input{width:100%;padding:10px;border:1px solid #e5e3db;border-radius:8px;font-size:13px;margin-bottom:10px;font-family:monospace;}
+  .modal button{width:100%;padding:12px;background:#378ADD;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;}
+  
+  /* Tablet/mobile adaptation */
+  @media(max-width:768px){
+    .app{grid-template-columns:1fr;grid-template-rows:1fr auto;}
+    .cart-side{max-height:40vh;}
+  }
+</style>
+</head>
+<body>
+
+<!-- Config modal (awel marra ghir) -->
+<div class="modal-bg" id="configModal" style="display:none;">
+  <div class="modal">
+    <h2>🔧 Setup Supabase</h2>
+    <p>Dkhol info dyal project Supabase dyalek. Ghadi t-sejjel f'browser (localStorage).</p>
+    <input type="text" id="urlInput" placeholder="https://xxxxxx.supabase.co">
+    <input type="text" id="keyInput" placeholder="Anon key (eyJhbGc...)">
+    <button onclick="saveConfig()">Save & Connect</button>
+  </div>
+</div>
+
+<div class="app">
+  <!-- LEFT: Menu -->
+  <div class="menu-side">
+    <div class="header">
+      <div>
+        <h1>Al Baraka <span id="connStatus" class="online-dot"></span></h1>
+        <p class="sub">Caisse · Ahmed B. · <span id="clock"></span></p>
+      </div>
+      <button style="background:#f1f0ec;border:none;padding:8px 14px;border-radius:8px;font-size:12px;cursor:pointer;" onclick="resetConfig()">⚙️</button>
+    </div>
+    
+    <div class="cats" id="cats">
+      <button class="cat active" data-cat="all">Koulchi</button>
+    </div>
+    
+    <div class="menu-grid" id="menuGrid">
+      <div class="loading">Loading menu...</div>
+    </div>
+  </div>
+  
+  <!-- RIGHT: Cart -->
+  <div class="cart-side">
+    <p class="ord-num">Commande #<span id="orderNum">—</span></p>
+    <p class="ord-title">Panier</p>
+    
+    <div class="ord-types">
+      <button class="ord-btn active" data-type="dine_in" onclick="setOrdType(this)">Fl machina</button>
+      <button class="ord-btn" data-type="takeaway" onclick="setOrdType(this)">Emporter</button>
+      <button class="ord-btn" data-type="delivery" onclick="setOrdType(this)">Livraison</button>
+    </div>
+    
+    <div class="cart-items" id="cartItems">
+      <div class="empty">
+        <p>Panier khawi</p>
+        <p style="font-size:11px;margin-top:4px;">Click 3la plat bach t-zido</p>
+      </div>
+    </div>
+    
+    <div class="summary">
+      <div class="sum-row"><span>Sous-total</span><span id="subtotal">0 MAD</span></div>
+      <div class="sum-row" id="deliveryRow" style="display:none;"><span>Livraison</span><span>15 MAD</span></div>
+      <div class="sum-total"><span>Total</span><span id="total">0 MAD</span></div>
+      <button class="pay-btn" id="payBtn" disabled onclick="submitOrder()">Valider ↗</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// SUPABASE CONFIG (men localStorage)
+// ============================================================
+let supabase = null;
+let config = {
+  url: localStorage.getItem('sb_url'),
+  key: localStorage.getItem('sb_key'),
+  restaurantId: '11111111-1111-1111-1111-111111111111' // Default restaurant id men sample data
+};
+
+// State
+let menuItems = [];
+let categories = new Set();
+let cart = {};
+let ordType = 'dine_in';
+let orderCounter = 1247;
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  if (!config.url || !config.key) {
+    showConfigModal();
+    return;
+  }
+  
+  try {
+    supabase = window.supabase.createClient(config.url, config.key);
+    loadMenu();
+    startClock();
+    document.getElementById('orderNum').textContent = orderCounter;
+  } catch (e) {
+    toast('Config ghalta, 3awd t-dkhol', 'error');
+    showConfigModal();
+  }
+}
+
+function showConfigModal() {
+  document.getElementById('configModal').style.display = 'flex';
+  document.getElementById('urlInput').value = config.url || '';
+  document.getElementById('keyInput').value = config.key || '';
+}
+
+function saveConfig() {
+  const url = document.getElementById('urlInput').value.trim();
+  const key = document.getElementById('keyInput').value.trim();
+  
+  if (!url || !key) {
+    toast('3mer koulchi!', 'error');
+    return;
+  }
+  
+  localStorage.setItem('sb_url', url);
+  localStorage.setItem('sb_key', key);
+  config.url = url;
+  config.key = key;
+  
+  document.getElementById('configModal').style.display = 'none';
+  init();
+}
+
+function resetConfig() {
+  if (confirm('Reset config Supabase?')) {
+    localStorage.removeItem('sb_url');
+    localStorage.removeItem('sb_key');
+    location.reload();
+  }
+}
+
+// ============================================================
+// LOAD MENU
+// ============================================================
+async function loadMenu() {
+  try {
+    const { data, error } = await supabase
+      .from('menu_items')
+      .select('*')
+      .eq('restaurant_id', config.restaurantId)
+      .order('category')
+      .order('name');
+    
+    if (error) throw error;
+    
+    menuItems = data || [];
+    
+    // Collect categories
+    categories = new Set(menuItems.map(m => m.category).filter(Boolean));
+    renderCategories();
+    renderMenu('all');
+    
+    if (menuItems.length === 0) {
+      document.getElementById('menuGrid').innerHTML = 
+        '<div class="loading" style="grid-column:1/-1;">Ma kayn ta menu. Dkhol plats f\'Supabase.</div>';
+    }
+  } catch (e) {
+    console.error(e);
+    toast('Ma qderna-ch n-jibou menu: ' + e.message, 'error');
+    document.getElementById('menuGrid').innerHTML = 
+      '<div class="loading" style="grid-column:1/-1;">Erreur. Check console (F12)</div>';
+  }
+}
+
+function renderCategories() {
+  const catsEl = document.getElementById('cats');
+  const allBtn = catsEl.querySelector('[data-cat="all"]');
+  catsEl.innerHTML = '';
+  catsEl.appendChild(allBtn);
+  
+  categories.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'cat';
+    btn.dataset.cat = cat;
+    btn.textContent = cat;
+    btn.onclick = () => filterCat(cat, btn);
+    catsEl.appendChild(btn);
+  });
+  
+  allBtn.onclick = () => filterCat('all', allBtn);
+}
+
+function filterCat(cat, btn) {
+  document.querySelectorAll('.cat').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  renderMenu(cat);
+}
+
+function renderMenu(cat) {
+  const grid = document.getElementById('menuGrid');
+  const filtered = cat === 'all' ? menuItems : menuItems.filter(m => m.category === cat);
+  
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="loading" style="grid-column:1/-1;">Ma kayn walou</div>';
+    return;
+  }
+  
+  grid.innerHTML = filtered.map(item => {
+    const unavailable = !item.is_available;
+    return `
+      <div class="menu-card ${unavailable ? 'unavailable' : ''}" 
+           ${unavailable ? '' : `onclick="addItem('${item.id}', '${item.name.replace(/'/g, "\\'")}', ${item.price})"`}>
+        <div>
+          <p class="name">${item.name}</p>
+          ${unavailable ? '<p class="stock-warn">⚠ Stock khwa</p>' : ''}
+        </div>
+        <p class="price">${item.price} MAD</p>
+      </div>
+    `;
+  }).join('');
+}
+
+// ============================================================
+// CART
+// ============================================================
+function addItem(id, name, price) {
+  if (!cart[id]) cart[id] = { id, name, price, qty: 0 };
+  cart[id].qty++;
+  renderCart();
+}
+
+function changeQty(id, delta) {
+  if (!cart[id]) return;
+  cart[id].qty += delta;
+  if (cart[id].qty <= 0) delete cart[id];
+  renderCart();
+}
+
+function setOrdType(btn) {
+  document.querySelectorAll('.ord-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ordType = btn.dataset.type;
+  document.getElementById('deliveryRow').style.display = ordType === 'delivery' ? 'flex' : 'none';
+  renderCart();
+}
+
+function renderCart() {
+  const itemsEl = document.getElementById('cartItems');
+  const items = Object.values(cart);
+  
+  if (items.length === 0) {
+    itemsEl.innerHTML = '<div class="empty"><p>Panier khawi</p><p style="font-size:11px;margin-top:4px;">Click 3la plat bach t-zido</p></div>';
+    document.getElementById('payBtn').disabled = true;
+    document.getElementById('subtotal').textContent = '0 MAD';
+    document.getElementById('total').textContent = '0 MAD';
+    return;
+  }
+  
+  itemsEl.innerHTML = items.map(i => `
+    <div class="cart-item">
+      <div class="cart-item-info">
+        <p class="cart-item-name">${i.name}</p>
+        <p class="cart-item-price">${i.price} MAD</p>
+      </div>
+      <div class="qty">
+        <button onclick="changeQty('${i.id}',-1)">−</button>
+        <span>${i.qty}</span>
+        <button onclick="changeQty('${i.id}',1)">+</button>
+      </div>
+      <span class="cart-item-total">${i.price * i.qty} MAD</span>
+    </div>
+  `).join('');
+  
+  const sub = items.reduce((s, i) => s + i.price * i.qty, 0);
+  const delivery = ordType === 'delivery' ? 15 : 0;
+  document.getElementById('subtotal').textContent = sub + ' MAD';
+  document.getElementById('total').textContent = (sub + delivery) + ' MAD';
+  document.getElementById('payBtn').disabled = false;
+}
+
+// ============================================================
+// SUBMIT ORDER
+// ============================================================
+async function submitOrder() {
+  const items = Object.values(cart);
+  if (items.length === 0) return;
+  
+  const btn = document.getElementById('payBtn');
+  btn.disabled = true;
+  btn.textContent = 'Kay-sift...';
+  
+  try {
+    const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
+    const delivery = ordType === 'delivery' ? 15 : 0;
+    const total = subtotal + delivery;
+    
+    // 1. Create order
+    const { data: order, error: orderErr } = await supabase
+      .from('orders')
+      .insert({
+        restaurant_id: config.restaurantId,
+        order_type: ordType,
+        status: 'pending',
+        payment_method: 'cash',
+        subtotal,
+        delivery_fee: delivery,
+        total
+      })
+      .select()
+      .single();
+    
+    if (orderErr) throw orderErr;
+    
+    // 2. Create order items
+    const orderItemsData = items.map(i => ({
+      order_id: order.id,
+      menu_item_id: i.id,
+      quantity: i.qty,
+      unit_price: i.price,
+      subtotal: i.price * i.qty
+    }));
+    
+    const { error: itemsErr } = await supabase
+      .from('order_items')
+      .insert(orderItemsData);
+    
+    if (itemsErr) throw itemsErr;
+    
+    // 3. Accept order (kay-trigger stock deduction!)
+    const { error: acceptErr } = await supabase
+      .from('orders')
+      .update({ status: 'accepted', accepted_at: new Date().toISOString() })
+      .eq('id', order.id);
+    
+    if (acceptErr) throw acceptErr;
+    
+    // Success!
+    toast(`✓ Commande #${order.order_number} tsejjet! Total: ${total} MAD`, 'success');
+    cart = {};
+    orderCounter++;
+    document.getElementById('orderNum').textContent = orderCounter;
+    renderCart();
+    
+    // Reload menu bach n-chofou stock jdid (ila chi plat bqa mchi available)
+    setTimeout(loadMenu, 500);
+    
+  } catch (e) {
+    console.error(e);
+    toast('Erreur: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Valider ↗';
+  }
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function toast(msg, type = '') {
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+function startClock() {
+  function update() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    document.getElementById('clock').textContent = `${h}:${m}`;
+  }
+  update();
+  setInterval(update, 30000);
+}
+
+// ============================================================
+// GO!
+// ============================================================
+init();
+</script>
+
+</body>
+</html>

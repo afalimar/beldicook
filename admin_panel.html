@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel - Al Baraka</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f5f3;color:#2c2c2a;min-height:100vh;}
+  
+  .header{background:#fff;padding:16px 24px;border-bottom:1px solid #e5e3db;display:flex;justify-content:space-between;align-items:center;}
+  .header h1{font-size:18px;font-weight:500;}
+  .header-right{display:flex;gap:10px;align-items:center;}
+  .user-info{font-size:13px;color:#666;}
+  
+  .btn{padding:8px 16px;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;transition:opacity 0.15s;}
+  .btn:hover{opacity:0.92;}
+  .btn-primary{background:#378ADD;color:#fff;}
+  .btn-secondary{background:#f1f0ec;color:#2c2c2a;}
+  .btn-danger{background:#E24B4A;color:#fff;}
+  .btn-success{background:#1D9E75;color:#fff;}
+  
+  .container{max-width:1200px;margin:0 auto;padding:24px;}
+  
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:24px;}
+  .stat{background:#fff;padding:18px;border-radius:12px;}
+  .stat .lbl{font-size:12px;color:#888;margin-bottom:4px;}
+  .stat .num{font-size:26px;font-weight:500;color:#378ADD;}
+  .stat .sub{font-size:11px;color:#888;margin-top:2px;}
+  
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px;flex-wrap:wrap;}
+  .toolbar h2{font-size:18px;font-weight:500;}
+  .filter-bar{display:flex;gap:6px;flex-wrap:wrap;}
+  .filter-pill{padding:6px 12px;background:#fff;border:1px solid #e5e3db;border-radius:16px;font-size:12px;cursor:pointer;}
+  .filter-pill.active{background:#378ADD;color:#fff;border-color:#378ADD;}
+  
+  .staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+  
+  .staff-card{background:#fff;padding:16px;border-radius:12px;position:relative;transition:transform 0.15s;}
+  .staff-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.08);}
+  .staff-card.inactive{opacity:0.5;}
+  
+  .avatar{width:48px;height:48px;border-radius:50%;background:#378ADD;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:500;margin-bottom:10px;}
+  .avatar.role-admin{background:#A32D2D;}
+  .avatar.role-manager{background:#854F0B;}
+  .avatar.role-chef{background:#0F6E56;}
+  .avatar.role-cashier{background:#0C447C;}
+  .avatar.role-livreur{background:#EF9F27;}
+  
+  .staff-name{font-size:15px;font-weight:500;margin-bottom:4px;}
+  .staff-email{font-size:12px;color:#888;margin-bottom:2px;}
+  .staff-phone{font-size:12px;color:#888;margin-bottom:8px;}
+  
+  .role-badge{display:inline-block;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;}
+  .role-admin{background:#FCEBEB;color:#791F1F;}
+  .role-manager{background:#FAEEDA;color:#854F0B;}
+  .role-chef{background:#EAF3DE;color:#0F6E56;}
+  .role-cashier{background:#E6F1FB;color:#0C447C;}
+  .role-livreur{background:#FFF4E6;color:#854F0B;}
+  
+  .last-login{font-size:11px;color:#aaa;margin-bottom:10px;}
+  
+  .actions{display:flex;gap:6px;}
+  .actions button{flex:1;padding:8px;font-size:12px;}
+  
+  /* Modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:200;padding:20px;}
+  .modal{background:#fff;border-radius:14px;padding:24px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;}
+  .modal h2{font-size:18px;margin-bottom:6px;}
+  .modal p{font-size:13px;color:#666;margin-bottom:16px;}
+  .modal .field{margin-bottom:12px;}
+  .modal label{font-size:12px;color:#666;display:block;margin-bottom:4px;font-weight:500;}
+  .modal input, .modal select{width:100%;padding:10px 12px;border:1px solid #e5e3db;border-radius:8px;font-size:14px;font-family:inherit;}
+  .modal-actions{display:flex;gap:8px;margin-top:16px;}
+  .modal-actions button{flex:1;padding:12px;}
+  
+  .password-hint{background:#FAEEDA;color:#854F0B;padding:10px 12px;border-radius:8px;font-size:12px;margin-bottom:12px;line-height:1.4;}
+  
+  .empty{text-align:center;padding:60px 20px;color:#888;background:#fff;border-radius:12px;}
+  .empty h3{font-size:16px;margin-bottom:8px;color:#666;}
+  
+  .toast{position:fixed;top:80px;right:20px;background:#2c2c2a;color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:300;animation:slideIn 0.3s;max-width:90%;}
+  @keyframes slideIn{from{transform:translateX(120%);}to{transform:translateX(0);}}
+  .toast.success{background:#1D9E75;}
+  .toast.error{background:#A32D2D;}
+  
+  .creds-display{background:#EAF3DE;border:1px solid #1D9E75;padding:12px;border-radius:8px;margin:12px 0;font-family:monospace;font-size:13px;}
+  .creds-display .label{font-size:11px;color:#27500A;font-family:inherit;}
+  .creds-display .value{margin-bottom:8px;color:#0F2308;}
+  .copy-btn{background:#1D9E75;color:#fff;border:none;padding:4px 8px;border-radius:4px;font-size:11px;cursor:pointer;margin-left:8px;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>⚙️ Admin Panel</h1>
+  <div class="header-right">
+    <span class="user-info" id="userInfo">Loading...</span>
+    <button class="btn btn-secondary" onclick="logout()">Sign Out</button>
+  </div>
+</div>
+
+<div class="container">
+  
+  <div class="stats">
+    <div class="stat">
+      <div class="lbl">Total staff</div>
+      <div class="num" id="statTotal">—</div>
+      <div class="sub">Active + inactive</div>
+    </div>
+    <div class="stat">
+      <div class="lbl">Active</div>
+      <div class="num" id="statActive">—</div>
+      <div class="sub">Kay-khdmo daba</div>
+    </div>
+    <div class="stat">
+      <div class="lbl">Roles</div>
+      <div class="num" id="statRoles">—</div>
+      <div class="sub">Mokhtalifin</div>
+    </div>
+  </div>
+  
+  <div class="toolbar">
+    <h2>Staff Management</h2>
+    <button class="btn btn-primary" onclick="openAddModal()">+ Zid Staff</button>
+  </div>
+  
+  <div class="filter-bar" style="margin-bottom:16px;">
+    <div class="filter-pill active" data-role="all" onclick="filterStaff('all', this)">Koulchi</div>
+    <div class="filter-pill" data-role="admin" onclick="filterStaff('admin', this)">Admin</div>
+    <div class="filter-pill" data-role="manager" onclick="filterStaff('manager', this)">Managers</div>
+    <div class="filter-pill" data-role="cashier" onclick="filterStaff('cashier', this)">Cashiers</div>
+    <div class="filter-pill" data-role="chef" onclick="filterStaff('chef', this)">Chefs</div>
+    <div class="filter-pill" data-role="livreur" onclick="filterStaff('livreur', this)">Livreurs</div>
+  </div>
+  
+  <div id="staffList">
+    <div class="empty">
+      <h3>Loading staff...</h3>
+    </div>
+  </div>
+  
+</div>
+
+<!-- Add Staff Modal -->
+<div class="modal-bg" id="addModal" style="display:none;">
+  <div class="modal">
+    <h2>Zid Staff Jdid</h2>
+    <p>Crée account jdida l'wahed men staff dyalek</p>
+    
+    <div class="password-hint">
+      ⚠️ <strong>Mouhim:</strong> Password li ghadi t-7te(t)o, kay-tsift l'staff (b'WhatsApp wla email manuellement). Sta3mel password sahel y-tk(h)tab.
+    </div>
+    
+    <div class="field">
+      <label>Isem l'kamel *</label>
+      <input type="text" id="newName" placeholder="Karim Benali">
+    </div>
+    
+    <div class="field">
+      <label>Email *</label>
+      <input type="email" id="newEmail" placeholder="karim@albaraka.ma">
+    </div>
+    
+    <div class="field">
+      <label>Téléphone</label>
+      <input type="tel" id="newPhone" placeholder="0661234567">
+    </div>
+    
+    <div class="field">
+      <label>Role *</label>
+      <select id="newRole">
+        <option value="cashier">Cashier (POS)</option>
+        <option value="chef">Chef (Kitchen)</option>
+        <option value="livreur">Livreur</option>
+        <option value="manager">Manager</option>
+        <option value="admin">Admin (full access)</option>
+      </select>
+    </div>
+    
+    <div class="field">
+      <label>Password initial *</label>
+      <input type="text" id="newPassword" placeholder="Maslan: Karim2025!" value="Welcome2025!">
+    </div>
+    
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeAddModal()">Ljja3</button>
+      <button class="btn btn-primary" onclick="addStaff()">Crée Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- Credentials Display Modal -->
+<div class="modal-bg" id="credsModal" style="display:none;">
+  <div class="modal">
+    <h2>✅ Account Cré!</h2>
+    <p>Sift had l'info l'staff member b'WhatsApp wla SMS:</p>
+    
+    <div class="creds-display">
+      <div class="label">Login URL:</div>
+      <div class="value" id="credUrl">—</div>
+      
+      <div class="label">Email:</div>
+      <div class="value" id="credEmail">—</div>
+      
+      <div class="label">Password:</div>
+      <div class="value" id="credPassword">—</div>
+    </div>
+    
+    <button class="btn btn-success" onclick="copyCreds()" style="width:100%;">📋 Copy Koulchi</button>
+    
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeCredsModal()" style="width:100%;">Safi</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let supabase = null;
+let currentUser = null;
+let allStaff = [];
+let currentFilter = 'all';
+
+// ============================================================
+// AUTH CHECK
+// ============================================================
+async function init() {
+  const url = localStorage.getItem('sb_url');
+  const key = localStorage.getItem('sb_key');
+  
+  if (!url || !key) {
+    window.location.href = 'login.html';
+    return;
+  }
+  
+  supabase = window.supabase.createClient(url, key);
+  
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    window.location.href = 'login.html';
+    return;
+  }
+  
+  // Check role
+  const { data: user, error } = await supabase
+    .from('users')
+    .select('role, full_name')
+    .eq('id', session.user.id)
+    .single();
+  
+  if (error || user.role !== 'admin') {
+    alert('Ma 3andek-ch access l had page. Admin ghir.');
+    window.location.href = 'login.html';
+    return;
+  }
+  
+  currentUser = { ...user, id: session.user.id };
+  document.getElementById('userInfo').textContent = currentUser.full_name + ' (Admin)';
+  
+  loadStaff();
+}
+
+// ============================================================
+// LOAD STAFF
+// ============================================================
+async function loadStaff() {
+  try {
+    const { data, error } = await supabase
+      .from('v_staff_with_auth')
+      .select('*');
+    
+    if (error) throw error;
+    
+    allStaff = data || [];
+    renderStats();
+    renderStaff();
+  } catch (e) {
+    console.error(e);
+    toast('Erreur: ' + e.message, 'error');
+  }
+}
+
+function renderStats() {
+  document.getElementById('statTotal').textContent = allStaff.length;
+  document.getElementById('statActive').textContent = allStaff.filter(s => s.is_active).length;
+  document.getElementById('statRoles').textContent = new Set(allStaff.map(s => s.role)).size;
+}
+
+function renderStaff() {
+  const container = document.getElementById('staffList');
+  let filtered = allStaff;
+  if (currentFilter !== 'all') {
+    filtered = allStaff.filter(s => s.role === currentFilter);
+  }
+  
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="empty">
+        <h3>Ma kayn ta staff</h3>
+        <p>Click "+ Zid Staff" bach t-bda</p>
+      </div>`;
+    return;
+  }
+  
+  container.className = 'staff-grid';
+  container.innerHTML = filtered.map(s => `
+    <div class="staff-card ${!s.is_active ? 'inactive' : ''}">
+      <div class="avatar role-${s.role}">${getInitials(s.full_name)}</div>
+      <div class="staff-name">${escapeHtml(s.full_name)}</div>
+      <div class="staff-email">${escapeHtml(s.email || '—')}</div>
+      ${s.phone ? `<div class="staff-phone">📞 ${escapeHtml(s.phone)}</div>` : ''}
+      <div class="role-badge role-${s.role}">${s.role}</div>
+      <div class="last-login">${formatLastLogin(s.last_login)}</div>
+      <div class="actions">
+        <button class="btn btn-secondary" onclick="toggleActive('${s.id}', ${s.is_active})">
+          ${s.is_active ? 'Desactiver' : 'Activer'}
+        </button>
+        ${s.id !== currentUser.id ? `
+          <button class="btn btn-danger" onclick="deleteStaff('${s.id}', '${escapeHtml(s.full_name)}')">Delete</button>
+        ` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterStaff(role, btn) {
+  currentFilter = role;
+  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  renderStaff();
+}
+
+// ============================================================
+// ADD STAFF
+// ============================================================
+function openAddModal() {
+  document.getElementById('addModal').style.display = 'flex';
+  document.getElementById('newName').focus();
+}
+
+function closeAddModal() {
+  document.getElementById('addModal').style.display = 'none';
+  ['newName', 'newEmail', 'newPhone'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('newRole').value = 'cashier';
+  document.getElementById('newPassword').value = 'Welcome2025!';
+}
+
+async function addStaff() {
+  const name = document.getElementById('newName').value.trim();
+  const email = document.getElementById('newEmail').value.trim();
+  const phone = document.getElementById('newPhone').value.trim();
+  const role = document.getElementById('newRole').value;
+  const password = document.getElementById('newPassword').value;
+  
+  if (!name || !email || !password) {
+    toast('3mer koulchi obligatoire!', 'error');
+    return;
+  }
+  
+  if (password.length < 8) {
+    toast('Password khasso ykoun min 8 caractères', 'error');
+    return;
+  }
+  
+  try {
+    // Sign up b'metadata
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: name,
+          phone: phone || null,
+          role: role,
+          restaurant_id: '11111111-1111-1111-1111-111111111111'
+        }
+      }
+    });
+    
+    if (error) throw error;
+    
+    // Display credentials
+    document.getElementById('credUrl').textContent = window.location.origin + window.location.pathname.replace('admin_panel.html', 'login.html');
+    document.getElementById('credEmail').textContent = email;
+    document.getElementById('credPassword').textContent = password;
+    
+    closeAddModal();
+    document.getElementById('credsModal').style.display = 'flex';
+    
+    setTimeout(() => loadStaff(), 1000);
+  } catch (e) {
+    console.error(e);
+    toast('Erreur: ' + e.message, 'error');
+  }
+}
+
+function closeCredsModal() {
+  document.getElementById('credsModal').style.display = 'none';
+}
+
+function copyCreds() {
+  const text = `🍽️ Al Baraka - Login Info
+
+Login URL: ${document.getElementById('credUrl').textContent}
+Email: ${document.getElementById('credEmail').textContent}
+Password: ${document.getElementById('credPassword').textContent}
+
+Mer7ba m3ana!`;
+  
+  navigator.clipboard.writeText(text);
+  toast('✓ Tcopy! Sift h b\'WhatsApp', 'success');
+}
+
+// ============================================================
+// TOGGLE ACTIVE
+// ============================================================
+async function toggleActive(userId, isActive) {
+  if (!confirm(isActive ? 'Desactiver had staff?' : 'Activer had staff?')) return;
+  
+  try {
+    const { error } = await supabase
+      .from('users')
+      .update({ is_active: !isActive })
+      .eq('id', userId);
+    
+    if (error) throw error;
+    toast(isActive ? '✓ Desactivé' : '✓ Activé', 'success');
+    loadStaff();
+  } catch (e) {
+    toast('Erreur: ' + e.message, 'error');
+  }
+}
+
+// ============================================================
+// DELETE STAFF
+// ============================================================
+async function deleteStaff(userId, name) {
+  if (!confirm(`T-delete ${name} permanent? Hadchi ma kay-tred-ch!`)) return;
+  
+  try {
+    // Note: Auth user delete kay-7tage admin API key (service role)
+    // L'frontend, n-deactiviw ghir
+    const { error } = await supabase
+      .from('users')
+      .update({ is_active: false })
+      .eq('id', userId);
+    
+    if (error) throw error;
+    toast('Staff deactivé. (Pour delete kamel, sir l Supabase → Auth)', 'success');
+    loadStaff();
+  } catch (e) {
+    toast('Erreur: ' + e.message, 'error');
+  }
+}
+
+// ============================================================
+// LOGOUT
+// ============================================================
+async function logout() {
+  await supabase.auth.signOut();
+  window.location.href = 'login.html';
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function getInitials(name) {
+  if (!name) return '?';
+  return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+
+function formatLastLogin(date) {
+  if (!date) return 'Ma logini-ch ba3d';
+  const d = new Date(date);
+  const now = new Date();
+  const diffMs = now - d;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  
+  if (diffMins < 5) return 'Daba';
+  if (diffMins < 60) return `${diffMins} min layt`;
+  if (diffHours < 24) return `${diffHours}h layt`;
+  if (diffDays < 7) return `${diffDays}d layt`;
+  return d.toLocaleDateString();
+}
+
+function escapeHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
+function toast(msg, type = '') {
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+init();
+</script>
+</body>
+</html>
