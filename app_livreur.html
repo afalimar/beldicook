@@ -3,143 +3,122 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#378ADD">
+<meta name="theme-color" content="#1a3a8a">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Livreur - Al Baraka</title>
+<title>Livreur - Beldi Cook</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;}
-  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f5f3;color:#2c2c2a;min-height:100vh;font-size:15px;}
-  
-  /* App container - phone-first */
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#fafaf7;color:#222;min-height:100vh;font-size:15px;}
   .app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:#fff;position:relative;}
   
-  /* Header */
-  .header{background:#378ADD;color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;}
-  .header h1{font-size:16px;font-weight:500;}
-  .header-sub{font-size:11px;opacity:0.85;margin-top:2px;}
-  .status-toggle{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:6px 12px;border-radius:20px;cursor:pointer;font-size:12px;}
-  .status-dot{width:8px;height:8px;border-radius:50%;background:#1D9E75;}
+  .header{background:#1a3a8a;color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;}
+  .logo-block{display:flex;align-items:center;gap:8px;}
+  .logo-circle{width:32px;height:32px;background:#FFD800;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:500;color:#1a3a8a;font-size:14px;font-family:"Brush Script MT",cursive;}
+  .header h1{font-size:14px;font-weight:500;}
+  .header-sub{font-size:10px;color:#FFD800;margin-top:2px;}
+  .status-toggle{display:flex;align-items:center;gap:6px;background:rgba(255,216,0,0.2);padding:5px 10px;border-radius:14px;cursor:pointer;font-size:11px;}
+  .status-dot{width:7px;height:7px;border-radius:50%;background:#1D9E75;}
   .status-dot.offline{background:#888;}
   
-  /* Stats bar */
-  .stats{display:flex;gap:8px;padding:12px 16px;background:#f7f6f3;}
-  .stat{flex:1;background:#fff;padding:10px;border-radius:10px;text-align:center;}
-  .stat .num{font-size:20px;font-weight:500;color:#378ADD;}
-  .stat .lbl{font-size:10px;color:#888;margin-top:2px;}
+  .stats{display:flex;gap:6px;padding:10px 14px;background:#fff;border-bottom:1px solid #e8e6dd;}
+  .stat{flex:1;padding:10px;border-radius:8px;text-align:center;}
+  .stat .num{font-size:18px;font-weight:500;}
+  .stat .lbl{font-size:9px;margin-top:2px;}
+  .stat.today{background:#FFD800;color:#1a3a8a;}
+  .stat.today .lbl{color:#1a3a8a;}
+  .stat.current{background:#1a3a8a;color:#FFD800;}
+  .stat.earn{background:#fafaf7;border:1px solid #e8e6dd;color:#1a3a8a;}
+  .stat.earn .lbl{color:#666;}
   
-  /* Content */
-  .content{flex:1;padding:12px 16px 80px;}
-  .section-title{font-size:13px;font-weight:500;color:#666;margin:8px 0 10px;padding:0 4px;}
+  .content{flex:1;padding:12px 14px 80px;}
+  .section-title{font-size:11px;font-weight:500;color:#666;margin:8px 0 10px;padding:0 4px;letter-spacing:0.5px;}
   
-  /* Empty state */
   .empty{text-align:center;padding:60px 20px;color:#888;}
-  .empty .big{font-size:40px;margin-bottom:10px;}
+  .empty .big{font-size:48px;margin-bottom:10px;}
   .empty p{font-size:13px;line-height:1.5;}
   
-  /* Delivery cards */
-  .delivery-card{background:#fff;border:1px solid #e5e3db;border-radius:12px;padding:14px;margin-bottom:10px;transition:all 0.2s;}
-  .delivery-card.new{border-color:#EF9F27;border-width:2px;animation:pulse-border 1.5s infinite;}
-  @keyframes pulse-border{0%,100%{border-color:#EF9F27;}50%{border-color:#FAC775;}}
+  .delivery-card{background:#fff;border:1px solid #e8e6dd;border-radius:12px;padding:14px;margin-bottom:10px;}
+  .delivery-card.new{border:2px solid #FFD800;animation:pulse-border 1.5s infinite;}
+  @keyframes pulse-border{0%,100%{border-color:#FFD800;}50%{border-color:#FAC775;}}
   
   .dc-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
-  .dc-num{font-size:15px;font-weight:500;}
-  .dc-badge{font-size:10px;padding:3px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:0.5px;font-weight:500;}
-  .badge-new{background:#FAEEDA;color:#854F0B;}
+  .dc-num{font-size:15px;font-weight:500;color:#1a3a8a;}
+  .dc-time{font-size:10px;color:#888;margin-top:2px;}
+  .dc-badge{font-size:10px;padding:3px 8px;border-radius:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.5px;}
+  .badge-new{background:#FFD800;color:#1a3a8a;}
   .badge-picked{background:#E6F1FB;color:#0C447C;}
-  .badge-enroute{background:#E1F5EE;color:#085041;}
+  .badge-enroute{background:#1a3a8a;color:#FFD800;}
   
-  .dc-info{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
-  .info-line{display:flex;gap:8px;font-size:13px;color:#444;}
-  .info-icon{color:#888;width:18px;text-align:center;}
+  .dc-addr{background:#fafaf7;padding:10px;border-radius:8px;margin-bottom:10px;font-size:13px;line-height:1.4;}
+  .dc-addr .name{font-weight:500;color:#1a3a8a;margin-bottom:2px;}
+  .dc-addr .phone{color:#1a3a8a;font-weight:500;}
   
-  .dc-addr{background:#f7f6f3;padding:10px;border-radius:8px;margin-bottom:10px;font-size:13px;line-height:1.4;}
-  .dc-addr .name{font-weight:500;margin-bottom:4px;}
-  .dc-addr .phone{color:#378ADD;font-weight:500;}
+  .dc-notes{background:rgba(255,216,0,0.15);padding:8px 10px;border-radius:6px;font-size:12px;color:#854F0B;margin-bottom:10px;border-left:3px solid #FFD800;}
   
-  .dc-notes{background:#FAEEDA;padding:8px 10px;border-radius:6px;font-size:12px;color:#854F0B;margin-bottom:10px;}
+  .dc-total{font-size:18px;font-weight:500;color:#1a3a8a;margin-bottom:12px;}
+  .dc-total .cash{font-size:11px;color:#888;font-weight:400;}
   
-  .dc-total{font-size:18px;font-weight:500;color:#378ADD;margin-bottom:12px;}
+  .qab{display:flex;gap:6px;margin-bottom:10px;}
+  .qab-btn{flex:1;padding:10px;background:#fafaf7;border:1px solid #e8e6dd;border-radius:8px;font-size:12px;color:#1a3a8a;font-weight:500;text-align:center;text-decoration:none;cursor:pointer;}
+  .qab-btn:active{background:#e8e6dd;}
   
-  /* Action buttons */
   .actions{display:flex;gap:6px;}
-  .btn{flex:1;padding:12px;border:none;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;transition:opacity 0.15s;color:#fff;}
+  .btn{flex:1;padding:12px;border:none;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;color:#fff;}
   .btn:active{opacity:0.75;transform:scale(0.98);}
-  .btn-primary{background:#378ADD;}
+  .btn-primary{background:#1a3a8a;}
   .btn-success{background:#1D9E75;}
-  .btn-secondary{background:#f1f0ec;color:#2c2c2a;}
+  .btn-secondary{background:#fafaf7;color:#1a3a8a;border:1px solid #e8e6dd;}
   .btn-danger{background:#E24B4A;}
   
-  /* Quick action bar */
-  .qab{display:flex;gap:6px;margin-bottom:10px;}
-  .qab .qab-btn{flex:1;padding:10px;background:#f7f6f3;border:1px solid #e5e3db;border-radius:8px;font-size:12px;cursor:pointer;color:#2c2c2a;text-align:center;}
-  .qab .qab-btn:active{background:#e5e3db;}
+  .toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#1a3a8a;color:#FFD800;padding:10px 18px;border-radius:20px;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,0.2);z-index:100;max-width:90%;}
+  .toast.success{background:#1D9E75;color:#fff;}
+  .toast.error{background:#A32D2D;color:#fff;}
   
-  /* Toast */
-  .toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#2c2c2a;color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,0.2);z-index:100;animation:slideDown 0.3s;max-width:90%;}
-  @keyframes slideDown{from{transform:translate(-50%,-40px);opacity:0;}to{transform:translate(-50%,0);opacity:1;}}
-  .toast.success{background:#1D9E75;}
-  .toast.error{background:#A32D2D;}
-  
-  /* Install banner */
-  .install-banner{background:#E6F1FB;color:#0C447C;padding:10px 16px;font-size:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
-  .install-banner button{background:#378ADD;color:#fff;border:none;padding:6px 12px;border-radius:6px;font-size:11px;cursor:pointer;}
-  
-  /* Modal */
-  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:200;padding:20px;}
+  .modal-bg{position:fixed;inset:0;background:rgba(26,58,138,0.7);display:flex;align-items:center;justify-content:center;z-index:200;padding:20px;}
   .modal{background:#fff;border-radius:14px;padding:20px;max-width:420px;width:100%;}
-  .modal h2{font-size:17px;margin-bottom:6px;}
+  .modal h2{font-size:17px;color:#1a3a8a;margin-bottom:6px;}
   .modal p{font-size:13px;color:#666;margin-bottom:14px;line-height:1.5;}
   .modal label{font-size:12px;color:#666;display:block;margin-bottom:4px;}
-  .modal input{width:100%;padding:10px;border:1px solid #e5e3db;border-radius:8px;font-size:13px;margin-bottom:10px;font-family:monospace;}
+  .modal input{width:100%;padding:10px;border:1px solid #e8e6dd;border-radius:8px;font-size:13px;margin-bottom:10px;font-family:monospace;}
   .modal-actions{display:flex;gap:8px;margin-top:8px;}
   .modal-actions button{flex:1;padding:12px;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;}
   
-  /* Role selector */
   .role-select{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
-  .role-opt{padding:10px 12px;border:2px solid #e5e3db;border-radius:8px;cursor:pointer;font-size:13px;}
-  .role-opt.active{border-color:#378ADD;background:#E6F1FB;color:#0C447C;font-weight:500;}
-  
-  /* Bottom safe area (l'phones m3a notch) */
-  @supports(padding:max(0px)){
-    .app{padding-bottom:env(safe-area-inset-bottom);}
-  }
+  .role-opt{padding:10px 12px;border:2px solid #e8e6dd;border-radius:8px;cursor:pointer;font-size:13px;background:#fff;}
+  .role-opt.active{border-color:#FFD800;background:#fafaf7;color:#1a3a8a;font-weight:500;}
 </style>
 </head>
 <body>
 
-<!-- Config Modal -->
 <div class="modal-bg" id="configModal" style="display:none;">
   <div class="modal">
-    <h2>🏍️ App Livreur Setup</h2>
+    <h2>🏍️ Beldi Cook - Livreur Setup</h2>
     <p>Awel marra, dkhol info dyal Supabase ou khtar livreur:</p>
-    
     <label>Supabase URL</label>
     <input type="text" id="urlInput" placeholder="https://xxxxxx.supabase.co">
-    
     <label>Anon Key</label>
     <input type="text" id="keyInput" placeholder="eyJhbGc...">
-    
-    <label>Chkoun nta? (l'testing ghir)</label>
+    <label>Chkoun nta?</label>
     <div class="role-select">
       <div class="role-opt active" data-id="livreur-1" onclick="selectRole(this)">🏍️ Rachid M. (Velo)</div>
       <div class="role-opt" data-id="livreur-2" onclick="selectRole(this)">🏍️ Youssef L. (Moto)</div>
       <div class="role-opt" data-id="livreur-3" onclick="selectRole(this)">🏍️ Khalid B. (Moto)</div>
     </div>
-    
     <div class="modal-actions">
-      <button class="btn-primary" style="background:#378ADD;color:#fff;" onclick="saveConfig()">Connect</button>
+      <button class="btn-primary" style="background:#1a3a8a;color:#FFD800;" onclick="saveConfig()">Connect</button>
     </div>
   </div>
 </div>
 
-<!-- Main App -->
 <div class="app">
   <div class="header">
-    <div>
-      <h1 id="livreurName">Livreur</h1>
-      <div class="header-sub" id="clock">—</div>
+    <div class="logo-block">
+      <div class="logo-circle">B</div>
+      <div>
+        <h1 id="livreurName">Livreur</h1>
+        <div class="header-sub" id="clock">Beldi Cook · —</div>
+      </div>
     </div>
     <div class="status-toggle" onclick="toggleOnline()">
       <span class="status-dot" id="statusDot"></span>
@@ -147,41 +126,23 @@
     </div>
   </div>
   
-  <div id="installBanner" class="install-banner" style="display:none;">
-    <span>💡 Zid had app l'homescreen dyalek</span>
-    <button onclick="installPWA()">Install</button>
-  </div>
-  
   <div class="stats">
-    <div class="stat">
-      <div class="num" id="statToday">0</div>
-      <div class="lbl">L'youm</div>
-    </div>
-    <div class="stat">
-      <div class="num" id="statActive">0</div>
-      <div class="lbl">Current</div>
-    </div>
-    <div class="stat">
-      <div class="num" id="statEarn">0</div>
-      <div class="lbl">MAD 3mal</div>
-    </div>
+    <div class="stat today"><div class="num" id="statToday">0</div><div class="lbl">L'youm</div></div>
+    <div class="stat current"><div class="num" id="statActive">0</div><div class="lbl">Current</div></div>
+    <div class="stat earn"><div class="num" id="statEarn">0</div><div class="lbl">MAD</div></div>
   </div>
   
   <div class="content">
-    <h3 class="section-title">Livraisons</h3>
+    <div class="section-title">LIVRAISONS</div>
     <div id="deliveries">
-      <div class="empty">
-        <div class="big">⏳</div>
-        <p>Loading...</p>
-      </div>
+      <div class="empty"><div class="big">⏳</div><p>Loading...</p></div>
     </div>
-    
     <button class="btn btn-secondary" style="width:100%;margin-top:20px;padding:10px;" onclick="resetConfig()">⚙️ Reset Config</button>
   </div>
 </div>
 
 <script>
-let supabaseClient = null;
+let supabase = null;
 let config = {
   url: localStorage.getItem('sb_url'),
   key: localStorage.getItem('sb_key'),
@@ -189,31 +150,20 @@ let config = {
   livreurId: localStorage.getItem('livreur_id') || null,
   livreurName: localStorage.getItem('livreur_name') || 'Livreur'
 };
-
 let deliveries = [];
 let isOnline = true;
 let selectedRole = 'livreur-1';
 
-// ============================================================
-// INIT
-// ============================================================
 function init() {
-  if (!config.url || !config.key || !config.livreurId) {
-    document.getElementById('configModal').style.display = 'flex';
-    return;
-  }
+  if (!config.url || !config.key || !config.livreurId) { document.getElementById('configModal').style.display = 'flex'; return; }
   try {
-    supabaseClient = window.supabase.createClient(config.url, config.key);
+    supabase = window.supabase.createClient(config.url, config.key);
     document.getElementById('livreurName').textContent = config.livreurName;
     loadDeliveries();
     subscribeToChanges();
     loadTodayStats();
     startClock();
-    checkPWAInstallable();
-  } catch (e) {
-    console.error(e);
-    document.getElementById('configModal').style.display = 'flex';
-  }
+  } catch (e) { document.getElementById('configModal').style.display = 'flex'; }
 }
 
 function selectRole(el) {
@@ -225,317 +175,150 @@ function selectRole(el) {
 function saveConfig() {
   const url = document.getElementById('urlInput').value.trim();
   const key = document.getElementById('keyInput').value.trim();
-  
   if (!url || !key) { toast('3mer koulchi!', 'error'); return; }
-  
-  const roleNames = {
-    'livreur-1': 'Rachid M.',
-    'livreur-2': 'Youssef L.',
-    'livreur-3': 'Khalid B.'
-  };
-  
-  localStorage.setItem('sb_url', url);
-  localStorage.setItem('sb_key', key);
-  localStorage.setItem('livreur_id', selectedRole);
-  localStorage.setItem('livreur_name', roleNames[selectedRole]);
-  
-  config.url = url;
-  config.key = key;
-  config.livreurId = selectedRole;
-  config.livreurName = roleNames[selectedRole];
-  
+  const roleNames = { 'livreur-1': 'Rachid M.', 'livreur-2': 'Youssef L.', 'livreur-3': 'Khalid B.' };
+  localStorage.setItem('sb_url', url); localStorage.setItem('sb_key', key);
+  localStorage.setItem('livreur_id', selectedRole); localStorage.setItem('livreur_name', roleNames[selectedRole]);
+  config.url = url; config.key = key; config.livreurId = selectedRole; config.livreurName = roleNames[selectedRole];
   document.getElementById('configModal').style.display = 'none';
   init();
 }
 
 function resetConfig() {
-  if (confirm('Reset?')) {
-    localStorage.clear();
-    location.reload();
-  }
+  if (confirm('Reset?')) { localStorage.clear(); location.reload(); }
 }
 
-// ============================================================
-// LOAD DELIVERIES
-// ============================================================
 async function loadDeliveries() {
   try {
-    // Kay-jib deliveries li:
-    // 1. Ma 3andhom-ch livreur assigned (disponible l'anyone) 
-    // OU
-    // 2. Assigned l'had livreur
-    const { data, error } = await supabaseClient
-      .from('v_pending_deliveries')
-      .select('*')
-      .or(`livreur_id.is.null,livreur_id.eq.${config.livreurId}`);
-    
+    const { data, error } = await supabase.from('v_pending_deliveries').select('*').or(`livreur_id.is.null,livreur_id.eq.${config.livreurId}`);
     if (error) throw error;
     deliveries = data || [];
     render();
     updateStats();
-  } catch (e) {
-    console.error('Load error:', e);
-    toast('Erreur: ' + e.message, 'error');
-  }
+  } catch (e) { toast('Erreur: ' + e.message, 'error'); }
 }
 
 async function loadTodayStats() {
   try {
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    
-    const { data, error } = await supabaseClient
-      .from('deliveries')
-      .select('id, order_id, orders!inner(total, delivery_fee)')
-      .eq('livreur_id', config.livreurId)
-      .eq('status', 'delivered')
-      .gte('delivered_at', today.toISOString());
-    
+    const today = new Date(); today.setHours(0,0,0,0);
+    const { data, error } = await supabase.from('deliveries').select('id, order_id, orders!inner(total, delivery_fee)').eq('livreur_id', config.livreurId).eq('status', 'delivered').gte('delivered_at', today.toISOString());
     if (error) throw error;
-    
     const count = data?.length || 0;
     const earnings = (data || []).reduce((s, d) => s + (parseFloat(d.orders?.delivery_fee) || 0), 0);
-    
     document.getElementById('statToday').textContent = count;
     document.getElementById('statEarn').textContent = earnings.toFixed(0);
-  } catch (e) {
-    console.error('Stats error:', e);
-  }
+  } catch (e) {}
 }
 
-// ============================================================
-// REAL-TIME SUBSCRIPTION
-// ============================================================
 function subscribeToChanges() {
-  supabaseClient
-    .channel('livreur-updates')
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'deliveries' },
-      (payload) => {
-        console.log('📦 Delivery change:', payload);
-        loadDeliveries();
-        
-        // Notification son mnin livraison jdida kat-3afar
-        if (payload.eventType === 'INSERT') {
-          playNotification();
-          toast('🔔 Livraison jdida disponible!', 'success');
-        }
-      }
-    )
-    .on('postgres_changes',
-      { event: 'UPDATE', schema: 'public', table: 'orders' },
-      () => loadDeliveries()
-    )
-    .subscribe();
+  supabase.channel('livreur-updates').on('postgres_changes', { event: '*', schema: 'public', table: 'deliveries' }, (payload) => {
+    loadDeliveries();
+    if (payload.eventType === 'INSERT') {
+      playNotification();
+      toast('🔔 Livraison jdida!', 'success');
+    }
+  }).on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, () => loadDeliveries()).subscribe();
 }
 
-// ============================================================
-// RENDER
-// ============================================================
 function render() {
   const container = document.getElementById('deliveries');
-  
   if (deliveries.length === 0) {
-    container.innerHTML = `
-      <div class="empty">
-        <div class="big">🏍️</div>
-        <p><strong>Ma kayn ta livraison daba</strong><br>
-        Stenna commandes jdad...</p>
-      </div>`;
+    container.innerHTML = `<div class="empty"><div class="big">🏍️</div><p><strong>Ma kayn ta livraison daba</strong><br>Stenna commandes jdad...</p></div>`;
     return;
   }
-  
-  // Sort: 3andi assigned l'wwel, ba3da disponibles
   const sorted = [...deliveries].sort((a, b) => {
     const aMine = a.livreur_id === config.livreurId ? 0 : 1;
     const bMine = b.livreur_id === config.livreurId ? 0 : 1;
     if (aMine !== bMine) return aMine - bMine;
     return new Date(a.ready_at || a.order_created_at) - new Date(b.ready_at || b.order_created_at);
   });
-  
   container.innerHTML = sorted.map(d => renderCard(d)).join('');
 }
 
 function renderCard(d) {
   const isMine = d.livreur_id === config.livreurId;
   const isAvailable = !d.livreur_id;
-  
   let badge, badgeClass;
   if (isAvailable) { badge = 'Jdida'; badgeClass = 'badge-new'; }
   else if (d.delivery_status === 'assigned') { badge = 'Assigned'; badgeClass = 'badge-new'; }
   else if (d.delivery_status === 'picked_up') { badge = 'Picked'; badgeClass = 'badge-picked'; }
   else if (d.delivery_status === 'en_route') { badge = 'En route'; badgeClass = 'badge-enroute'; }
-  
   const cardClass = isAvailable ? 'delivery-card new' : 'delivery-card';
-  
   const mins = Math.floor((Date.now() - new Date(d.ready_at || d.order_created_at)) / 60000);
-  
-  // Encode phone l'tel: link
   const phoneClean = (d.customer_phone || '').replace(/\s/g, '');
   const addressEncoded = encodeURIComponent(d.delivery_address || '');
-  
   let actions = '';
-  if (isAvailable) {
-    actions = `<button class="btn btn-primary" onclick="claimDelivery('${d.delivery_id}')">Qbel ↗</button>`;
-  } else if (isMine && d.delivery_status === 'assigned') {
-    actions = `
-      <button class="btn btn-primary" onclick="updateStatus('${d.delivery_id}','picked_up')">📦 Picked up</button>
-      <button class="btn btn-danger" onclick="cancelDelivery('${d.delivery_id}')">✕</button>`;
-  } else if (isMine && d.delivery_status === 'picked_up') {
-    actions = `<button class="btn btn-success" onclick="updateStatus('${d.delivery_id}','en_route')">🏍️ En route</button>`;
-  } else if (isMine && d.delivery_status === 'en_route') {
-    actions = `<button class="btn btn-success" onclick="completeDelivery('${d.delivery_id}','${d.order_id}')">✓ Slemt</button>`;
-  }
-  
-  const quickActions = isMine && d.delivery_status !== 'assigned' ? `
-    <div class="qab">
-      <a href="tel:${phoneClean}" class="qab-btn" style="text-decoration:none;">📞 3eyyet</a>
-      <a href="https://www.google.com/maps/search/?api=1&query=${addressEncoded}" target="_blank" class="qab-btn" style="text-decoration:none;">🗺️ Navigation</a>
-    </div>` : '';
-  
-  return `
-    <div class="${cardClass}">
-      <div class="dc-head">
-        <div>
-          <div class="dc-num">#${d.order_number}</div>
-          <div style="font-size:11px;color:#888;margin-top:2px;">⏱ ${mins} min · wjed</div>
-        </div>
-        <span class="dc-badge ${badgeClass}">${badge}</span>
-      </div>
-      
-      <div class="dc-addr">
-        <div class="name">${escapeHtml(d.customer_name || '—')}</div>
-        <div class="phone">📞 ${escapeHtml(d.customer_phone || '—')}</div>
-        <div style="margin-top:4px;">📍 ${escapeHtml(d.delivery_address || '—')}</div>
-      </div>
-      
-      ${d.notes ? `<div class="dc-notes">📝 ${escapeHtml(d.notes)}</div>` : ''}
-      
-      <div class="dc-total">${d.total} MAD <span style="font-size:12px;color:#888;font-weight:400;">(cash)</span></div>
-      
-      ${quickActions}
-      
-      <div class="actions">${actions}</div>
-    </div>`;
+  if (isAvailable) actions = `<button class="btn btn-primary" onclick="claimDelivery('${d.delivery_id}')">Qbel ↗</button>`;
+  else if (isMine && d.delivery_status === 'assigned') actions = `<button class="btn btn-primary" onclick="updateStatus('${d.delivery_id}','picked_up')">📦 Picked up</button><button class="btn btn-danger" onclick="cancelDelivery('${d.delivery_id}')">✕</button>`;
+  else if (isMine && d.delivery_status === 'picked_up') actions = `<button class="btn btn-success" onclick="updateStatus('${d.delivery_id}','en_route')">🏍️ En route</button>`;
+  else if (isMine && d.delivery_status === 'en_route') actions = `<button class="btn btn-success" onclick="completeDelivery('${d.delivery_id}','${d.order_id}')">✓ Slemt</button>`;
+  const quickActions = isMine && d.delivery_status !== 'assigned' ? `<div class="qab"><a href="tel:${phoneClean}" class="qab-btn">📞 3eyyet</a><a href="https://www.google.com/maps/search/?api=1&query=${addressEncoded}" target="_blank" class="qab-btn">🗺️ Maps</a></div>` : '';
+  return `<div class="${cardClass}">
+    <div class="dc-head"><div><div class="dc-num">#${d.order_number}</div><div class="dc-time">⏱ ${mins} min · wjed</div></div><span class="dc-badge ${badgeClass}">${badge}</span></div>
+    <div class="dc-addr"><div class="name">${escapeHtml(d.customer_name || '—')}</div><div class="phone">📞 ${escapeHtml(d.customer_phone || '—')}</div><div style="margin-top:4px;">📍 ${escapeHtml(d.delivery_address || '—')}</div></div>
+    ${d.notes ? `<div class="dc-notes">📝 ${escapeHtml(d.notes)}</div>` : ''}
+    <div class="dc-total">${d.total} MAD <span class="cash">(cash)</span></div>
+    ${quickActions}
+    <div class="actions">${actions}</div>
+  </div>`;
 }
 
 function updateStats() {
-  const active = deliveries.filter(d => 
-    d.livreur_id === config.livreurId && 
-    ['assigned', 'picked_up', 'en_route'].includes(d.delivery_status)
-  ).length;
+  const active = deliveries.filter(d => d.livreur_id === config.livreurId && ['assigned', 'picked_up', 'en_route'].includes(d.delivery_status)).length;
   document.getElementById('statActive').textContent = active;
 }
 
-// ============================================================
-// ACTIONS
-// ============================================================
 async function claimDelivery(deliveryId) {
   try {
-    const { error } = await supabaseClient
-      .from('deliveries')
-      .update({ livreur_id: config.livreurId })
-      .eq('id', deliveryId)
-      .is('livreur_id', null); // Ghir ila baqi ma 3andha-ch livreur (race condition safe)
-    
+    const { error } = await supabase.from('deliveries').update({ livreur_id: config.livreurId }).eq('id', deliveryId).is('livreur_id', null);
     if (error) throw error;
     toast('✓ Qbelti l\'livraison!', 'success');
     loadDeliveries();
-  } catch (e) {
-    toast('Erreur: ' + e.message, 'error');
-  }
+  } catch (e) { toast('Erreur: ' + e.message, 'error'); }
 }
 
 async function updateStatus(deliveryId, newStatus) {
   try {
     const updates = { status: newStatus };
     if (newStatus === 'picked_up') updates.picked_up_at = new Date().toISOString();
-    
-    const { error } = await supabaseClient
-      .from('deliveries')
-      .update(updates)
-      .eq('id', deliveryId);
-    
+    const { error } = await supabase.from('deliveries').update(updates).eq('id', deliveryId);
     if (error) throw error;
-    
-    const msgs = {
-      'picked_up': '📦 Jbedti l\'commande!',
-      'en_route': '🏍️ En route l\'client!'
-    };
-    toast(msgs[newStatus] || 'Status updated', 'success');
+    const msgs = { 'picked_up': '📦 Jbedti!', 'en_route': '🏍️ En route!' };
+    toast(msgs[newStatus] || 'Updated', 'success');
     loadDeliveries();
-  } catch (e) {
-    toast('Erreur: ' + e.message, 'error');
-  }
+  } catch (e) { toast('Erreur: ' + e.message, 'error'); }
 }
 
 async function completeDelivery(deliveryId, orderId) {
-  if (!confirm('Ta3kad? Slemti l\'commande 3tal client 7sel l\'flous?')) return;
-  
+  if (!confirm('Slemti l\'commande?')) return;
   try {
-    // Update delivery
-    const { error: e1 } = await supabaseClient
-      .from('deliveries')
-      .update({ 
-        status: 'delivered',
-        delivered_at: new Date().toISOString()
-      })
-      .eq('id', deliveryId);
+    const { error: e1 } = await supabase.from('deliveries').update({ status: 'delivered', delivered_at: new Date().toISOString() }).eq('id', deliveryId);
     if (e1) throw e1;
-    
-    // Update order
-    const { error: e2 } = await supabaseClient
-      .from('orders')
-      .update({ 
-        status: 'delivered',
-        payment_status: 'paid',
-        delivered_at: new Date().toISOString()
-      })
-      .eq('id', orderId);
+    const { error: e2 } = await supabase.from('orders').update({ status: 'delivered', payment_status: 'paid', delivered_at: new Date().toISOString() }).eq('id', orderId);
     if (e2) throw e2;
-    
     toast('✓ Mabrouk! Livraison complete!', 'success');
-    loadDeliveries();
-    loadTodayStats();
-  } catch (e) {
-    toast('Erreur: ' + e.message, 'error');
-  }
+    loadDeliveries(); loadTodayStats();
+  } catch (e) { toast('Erreur: ' + e.message, 'error'); }
 }
 
 async function cancelDelivery(deliveryId) {
   if (!confirm('T-khelli had livraison l\'livreur akhor?')) return;
   try {
-    const { error } = await supabaseClient
-      .from('deliveries')
-      .update({ livreur_id: null })
-      .eq('id', deliveryId);
+    const { error } = await supabase.from('deliveries').update({ livreur_id: null }).eq('id', deliveryId);
     if (error) throw error;
-    toast('Livraison tsallmet l\'livreur akhor', 'success');
+    toast('Tsallmet', 'success');
     loadDeliveries();
-  } catch (e) {
-    toast('Erreur: ' + e.message, 'error');
-  }
+  } catch (e) { toast('Erreur: ' + e.message, 'error'); }
 }
 
-// ============================================================
-// ONLINE/OFFLINE TOGGLE
-// ============================================================
 function toggleOnline() {
   isOnline = !isOnline;
-  const dot = document.getElementById('statusDot');
-  const text = document.getElementById('statusText');
-  dot.classList.toggle('offline', !isOnline);
-  text.textContent = isOnline ? 'Online' : 'Offline';
+  document.getElementById('statusDot').classList.toggle('offline', !isOnline);
+  document.getElementById('statusText').textContent = isOnline ? 'Online' : 'Offline';
   toast(isOnline ? '🟢 Online' : '⚪ Offline', isOnline ? 'success' : '');
-  
-  if (isOnline) {
-    loadDeliveries();
-  }
+  if (isOnline) loadDeliveries();
 }
 
-// ============================================================
-// UTILS
-// ============================================================
 let audioCtx = null;
 function playNotification() {
   try {
@@ -544,20 +327,15 @@ function playNotification() {
       setTimeout(() => {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.frequency.value = 1000;
-        osc.type = 'sine';
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.frequency.value = 1000; osc.type = 'sine';
         gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.1);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
       }, delay);
     });
-    
-    // Vibration 3la mobile
     if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-  } catch (e) { console.error(e); }
+  } catch (e) {}
 }
 
 function toast(msg, type = '') {
@@ -570,43 +348,15 @@ function toast(msg, type = '') {
   setTimeout(() => el.remove(), 2500);
 }
 
-function escapeHtml(s) {
-  if (!s) return '';
-  return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
-}
+function escapeHtml(s) { if (!s) return ''; return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
 
 function startClock() {
   function update() {
     const now = new Date();
-    document.getElementById('clock').textContent = 
-      'Velo · Agadir · ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+    document.getElementById('clock').textContent = 'Beldi Cook · ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
   }
   update();
   setInterval(update, 30000);
-}
-
-// PWA install
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  document.getElementById('installBanner').style.display = 'flex';
-});
-
-function installPWA() {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  deferredPrompt.userChoice.then(() => {
-    deferredPrompt = null;
-    document.getElementById('installBanner').style.display = 'none';
-  });
-}
-
-function checkPWAInstallable() {
-  // Ila déjà installed, hide banner
-  if (window.matchMedia('(display-mode: standalone)').matches) {
-    document.getElementById('installBanner').style.display = 'none';
-  }
 }
 
 init();

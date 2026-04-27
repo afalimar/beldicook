@@ -3,86 +3,80 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>POS - Al Baraka</title>
+<title>POS - Beldi Cook</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f5f3;color:#2c2c2a;height:100vh;overflow:hidden;}
-  .app{display:grid;grid-template-columns:1fr 320px;height:100vh;gap:8px;padding:8px;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#1a3a8a;color:#222;height:100vh;overflow:hidden;padding:8px;}
+  .app{display:grid;grid-template-columns:1fr 320px;height:calc(100vh - 16px);gap:8px;}
   
-  .menu-side{background:#fff;border-radius:12px;padding:14px;display:flex;flex-direction:column;overflow:hidden;}
-  .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #eee;}
-  .header h1{font-size:16px;font-weight:500;}
-  .header .sub{font-size:12px;color:#888;}
-  .online-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#1D9E75;margin-left:6px;}
+  .menu-side{background:#fafaf7;border-radius:12px;padding:14px;display:flex;flex-direction:column;overflow:hidden;}
+  .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #e8e6dd;}
+  .logo-block{display:flex;align-items:center;gap:10px;}
+  .logo-circle{width:42px;height:42px;background:#FFD800;border:2px solid #1a3a8a;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:500;color:#1a3a8a;font-size:18px;font-family:"Brush Script MT",cursive;}
+  .header h1{font-size:15px;font-weight:500;color:#1a3a8a;}
+  .header .sub{font-size:11px;color:#888;}
+  .online-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#1D9E75;margin-left:4px;}
   
-  .cats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
-  .cat{padding:7px 14px;font-size:13px;border-radius:18px;background:#f1f0ec;cursor:pointer;border:none;color:#2c2c2a;transition:all .15s;white-space:nowrap;}
-  .cat.active{background:#378ADD;color:#fff;}
+  .cats{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;overflow-x:auto;padding-bottom:4px;}
+  .cat{padding:6px 12px;font-size:11px;border-radius:14px;background:#f1f0ec;cursor:pointer;border:none;color:#444;white-space:nowrap;}
+  .cat.active{background:#1a3a8a;color:#fff;}
   
-  .menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;overflow-y:auto;flex:1;padding-right:4px;}
-  .menu-card{background:#f7f6f3;border-radius:10px;padding:12px;cursor:pointer;border:2px solid transparent;min-height:85px;display:flex;flex-direction:column;justify-content:space-between;transition:all .12s;user-select:none;}
-  .menu-card:active{transform:scale(0.96);background:#eeece6;}
+  .menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px;overflow-y:auto;flex:1;padding-right:4px;}
+  .menu-card{background:#fff;border-radius:8px;padding:10px;cursor:pointer;border:1px solid #e8e6dd;min-height:70px;display:flex;flex-direction:column;justify-content:space-between;user-select:none;}
+  .menu-card:active{transform:scale(0.96);background:#fafaf7;}
   .menu-card.unavailable{opacity:.4;cursor:not-allowed;}
-  .menu-card .name{font-size:13px;font-weight:500;line-height:1.3;}
-  .menu-card .price{font-size:13px;color:#666;margin-top:6px;}
+  .menu-card .name{font-size:12px;font-weight:500;color:#1a3a8a;line-height:1.2;}
+  .menu-card .price{font-size:11px;color:#666;margin-top:4px;font-weight:500;}
   .stock-warn{font-size:10px;color:#854F0B;margin-top:2px;}
   
-  .cart-side{background:#fff;border-radius:12px;padding:14px;display:flex;flex-direction:column;overflow:hidden;}
-  .ord-num{font-size:12px;color:#888;margin-bottom:2px;}
-  .ord-title{font-size:14px;font-weight:500;margin-bottom:12px;}
+  .cart-side{background:#1a3a8a;border-radius:12px;padding:14px;display:flex;flex-direction:column;overflow:hidden;color:#fff;}
+  .ord-num{font-size:11px;color:#FFD800;margin-bottom:2px;}
+  .ord-title{font-size:13px;font-weight:500;margin-bottom:10px;}
   
-  .ord-types{display:flex;gap:4px;margin-bottom:10px;}
-  .ord-btn{flex:1;padding:8px;font-size:11px;border:1px solid #e5e3db;background:#fff;border-radius:8px;cursor:pointer;color:#2c2c2a;}
-  .ord-btn.active{background:#378ADD;color:#fff;border-color:#378ADD;}
+  .ord-types{display:flex;gap:3px;margin-bottom:10px;}
+  .ord-btn{flex:1;padding:7px;font-size:10px;border:none;background:rgba(255,255,255,0.1);border-radius:6px;cursor:pointer;color:#fff;text-align:center;}
+  .ord-btn.active{background:#FFD800;color:#1a3a8a;font-weight:500;}
   
-  .cart-items{flex:1;overflow-y:auto;margin-bottom:10px;}
-  .cart-item{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #f1f0ec;}
+  .cart-items{flex:1;overflow-y:auto;background:rgba(255,255,255,0.05);border-radius:6px;padding:8px;margin-bottom:10px;min-height:100px;}
+  .cart-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.1);}
   .cart-item:last-child{border-bottom:none;}
   .cart-item-info{flex:1;min-width:0;}
-  .cart-item-name{font-size:13px;font-weight:500;}
-  .cart-item-price{font-size:11px;color:#888;margin-top:2px;}
-  .cart-item-total{font-size:13px;font-weight:500;min-width:60px;text-align:right;}
+  .cart-item-name{font-size:12px;font-weight:500;color:#fff;}
+  .cart-item-price{font-size:10px;color:#FFD800;}
+  .cart-item-total{font-size:12px;font-weight:500;color:#fff;min-width:60px;text-align:right;}
   
-  .qty{display:flex;align-items:center;gap:4px;background:#f1f0ec;border-radius:8px;padding:2px;}
-  .qty button{background:none;border:none;width:24px;height:24px;font-size:14px;cursor:pointer;border-radius:4px;color:#2c2c2a;}
-  .qty button:active{background:#e5e3db;}
-  .qty span{font-size:13px;font-weight:500;min-width:18px;text-align:center;}
+  .qty{display:flex;align-items:center;gap:3px;background:rgba(255,255,255,0.15);border-radius:6px;padding:2px;}
+  .qty button{background:none;border:none;width:22px;height:22px;font-size:14px;cursor:pointer;color:#FFD800;}
+  .qty span{font-size:12px;font-weight:500;min-width:18px;text-align:center;color:#fff;}
   
-  .empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#b4b2a9;font-size:13px;text-align:center;padding:20px;}
+  .empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:rgba(255,255,255,0.5);font-size:12px;text-align:center;padding:20px;}
   
-  .summary{border-top:1px solid #f1f0ec;padding-top:12px;}
-  .sum-row{display:flex;justify-content:space-between;font-size:13px;color:#666;margin-bottom:4px;}
-  .sum-total{display:flex;justify-content:space-between;font-size:17px;font-weight:500;color:#2c2c2a;margin-top:4px;}
+  .summary{border-top:1px dashed rgba(255,255,255,0.2);padding-top:10px;}
+  .sum-row{display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,0.7);margin-bottom:3px;}
+  .sum-total{display:flex;justify-content:space-between;font-size:14px;font-weight:500;margin-top:6px;}
+  .sum-total span:last-child{color:#FFD800;}
   
-  .pay-btn{width:100%;padding:14px;font-size:15px;font-weight:500;background:#378ADD;color:#fff;border:none;border-radius:10px;cursor:pointer;margin-top:10px;transition:opacity .15s;}
+  .pay-btn{width:100%;padding:11px;font-size:13px;font-weight:500;background:#FFD800;color:#1a3a8a;border:none;border-radius:8px;cursor:pointer;margin-top:10px;}
   .pay-btn:active{opacity:.8;}
   .pay-btn:disabled{opacity:.3;cursor:not-allowed;}
   
-  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#2c2c2a;color:#fff;padding:12px 20px;border-radius:8px;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:100;animation:slideUp .3s;}
-  @keyframes slideUp{from{transform:translate(-50%,20px);opacity:0;}to{transform:translate(-50%,0);opacity:1;}}
-  .toast.error{background:#A32D2D;}
-  .toast.success{background:#0F6E56;}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a3a8a;color:#FFD800;padding:12px 20px;border-radius:8px;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:100;}
+  .toast.error{background:#A32D2D;color:#fff;}
+  .toast.success{background:#0F6E56;color:#fff;}
   
-  .loading{display:flex;align-items:center;justify-content:center;height:100%;color:#888;font-size:14px;}
-  
-  /* Modal generic */
-  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:200;padding:20px;animation:fadeIn .2s;}
-  @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
-  .modal{background:#fff;border-radius:14px;padding:24px;max-width:440px;width:100%;max-height:90vh;overflow-y:auto;animation:popUp .25s;}
-  @keyframes popUp{from{transform:scale(0.9);opacity:0;}to{transform:scale(1);opacity:1;}}
-  .modal h2{font-size:18px;margin-bottom:8px;}
+  .modal-bg{position:fixed;inset:0;background:rgba(26,58,138,0.7);display:flex;align-items:center;justify-content:center;z-index:200;padding:20px;}
+  .modal{background:#fff;border-radius:14px;padding:24px;max-width:440px;width:100%;max-height:90vh;overflow-y:auto;}
+  .modal h2{font-size:18px;color:#1a3a8a;margin-bottom:8px;}
   .modal p.hint{font-size:13px;color:#666;margin-bottom:16px;line-height:1.5;}
   .modal .field{margin-bottom:12px;}
   .modal label{font-size:12px;color:#666;display:block;margin-bottom:4px;font-weight:500;}
-  .modal input, .modal textarea{width:100%;padding:10px 12px;border:1px solid #e5e3db;border-radius:8px;font-size:14px;font-family:inherit;}
-  .modal input:focus, .modal textarea:focus{outline:none;border-color:#378ADD;}
-  .modal .row{display:flex;gap:8px;}
-  .modal .row > *{flex:1;}
+  .modal input, .modal textarea{width:100%;padding:10px 12px;border:1px solid #e8e6dd;border-radius:8px;font-size:14px;font-family:inherit;}
+  .modal input:focus, .modal textarea:focus{outline:none;border-color:#FFD800;}
   .modal .actions{display:flex;gap:8px;margin-top:16px;}
   .modal .actions button{flex:1;padding:12px;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;}
-  .btn-primary{background:#378ADD;color:#fff;}
-  .btn-secondary{background:#f1f0ec;color:#2c2c2a;}
+  .btn-primary{background:#1a3a8a;color:#FFD800;}
+  .btn-secondary{background:#fafaf7;color:#444;}
   
   @media(max-width:768px){
     .app{grid-template-columns:1fr;grid-template-rows:1fr auto;}
@@ -92,51 +86,24 @@
 </head>
 <body>
 
-<!-- Config Modal -->
 <div class="modal-bg" id="configModal" style="display:none;">
   <div class="modal">
-    <h2>🔧 Setup Supabase</h2>
-    <p class="hint">Dkhol info dyal project Supabase dyalek.</p>
-    <div class="field">
-      <label>Supabase URL</label>
-      <input type="text" id="urlInput" placeholder="https://xxxxxx.supabase.co">
-    </div>
-    <div class="field">
-      <label>Anon Key</label>
-      <input type="text" id="keyInput" placeholder="eyJhbGc...">
-    </div>
-    <div class="actions">
-      <button class="btn-primary" onclick="saveConfig()">Save & Connect</button>
-    </div>
+    <h2>🔧 Setup Beldi Cook</h2>
+    <p class="hint">Dkhol info dyal Supabase project dyalek.</p>
+    <div class="field"><label>Supabase URL</label><input type="text" id="urlInput" placeholder="https://xxxxxx.supabase.co"></div>
+    <div class="field"><label>Anon Key</label><input type="text" id="keyInput" placeholder="eyJhbGc..."></div>
+    <div class="actions"><button class="btn-primary" onclick="saveConfig()">Save & Connect</button></div>
   </div>
 </div>
 
-<!-- Customer Info Modal (jdid!) -->
 <div class="modal-bg" id="customerModal" style="display:none;">
   <div class="modal">
     <h2>📦 Info dyal Livraison</h2>
-    <p class="hint">Dkhol info dyal client bach livreur y-wsel ma9am:</p>
-    
-    <div class="field">
-      <label>Isem l'kamel *</label>
-      <input type="text" id="custName" placeholder="Karim Benali">
-    </div>
-    
-    <div class="field">
-      <label>Téléphone *</label>
-      <input type="tel" id="custPhone" placeholder="0661 23 45 67" inputmode="numeric">
-    </div>
-    
-    <div class="field">
-      <label>3nwan lkaml *</label>
-      <textarea id="custAddress" rows="3" placeholder="Rue 12, Hay Mohammadi, 3and 7anout Ahmed"></textarea>
-    </div>
-    
-    <div class="field">
-      <label>Notes (optional)</label>
-      <textarea id="custNotes" rows="2" placeholder="Shaqqa 3 · 3ayt qbel ma t-wsel"></textarea>
-    </div>
-    
+    <p class="hint">Dkhol info dyal client bach livreur y-wsel:</p>
+    <div class="field"><label>Isem l'kamel *</label><input type="text" id="custName" placeholder="Karim Benali"></div>
+    <div class="field"><label>Téléphone *</label><input type="tel" id="custPhone" placeholder="0661 23 45 67" inputmode="numeric"></div>
+    <div class="field"><label>3nwan lkaml *</label><textarea id="custAddress" rows="3" placeholder="Rue 12, Hay Mohammadi"></textarea></div>
+    <div class="field"><label>Notes (optional)</label><textarea id="custNotes" rows="2" placeholder="Shaqqa 3 · 3ayt qbel"></textarea></div>
     <div class="actions">
       <button class="btn-secondary" onclick="closeCustomerModal()">Ljja3</button>
       <button class="btn-primary" onclick="submitOrderWithCustomer()">Valider ↗</button>
@@ -144,13 +111,15 @@
   </div>
 </div>
 
-<!-- Main App -->
 <div class="app">
   <div class="menu-side">
     <div class="header">
-      <div>
-        <h1>Al Baraka <span class="online-dot"></span></h1>
-        <p class="sub">Caisse · Ahmed B. · <span id="clock"></span></p>
+      <div class="logo-block">
+        <div class="logo-circle">B</div>
+        <div>
+          <h1>Beldi Cook · Caisse <span class="online-dot"></span></h1>
+          <p class="sub">Ahmed B. · <span id="clock"></span> · Moroccan Taste</p>
+        </div>
       </div>
       <button style="background:#f1f0ec;border:none;padding:8px 14px;border-radius:8px;font-size:12px;cursor:pointer;" onclick="resetConfig()">⚙️</button>
     </div>
@@ -160,7 +129,7 @@
     </div>
     
     <div class="menu-grid" id="menuGrid">
-      <div class="loading">Loading menu...</div>
+      <div style="grid-column:1/-1;text-align:center;padding:40px;color:#888;">Loading menu...</div>
     </div>
   </div>
   
@@ -177,7 +146,7 @@
     <div class="cart-items" id="cartItems">
       <div class="empty">
         <p>Panier khawi</p>
-        <p style="font-size:11px;margin-top:4px;">Click 3la plat bach t-zido</p>
+        <p style="font-size:10px;margin-top:4px;">Click 3la plat bach t-zido</p>
       </div>
     </div>
     
@@ -191,13 +160,12 @@
 </div>
 
 <script>
-let supabaseClient = null;
+let supabase = null;
 let config = {
   url: localStorage.getItem('sb_url'),
   key: localStorage.getItem('sb_key'),
   restaurantId: '11111111-1111-1111-1111-111111111111'
 };
-
 let menuItems = [];
 let categories = new Set();
 let cart = {};
@@ -205,12 +173,9 @@ let ordType = 'dine_in';
 let orderCounter = 1247;
 
 function init() {
-  if (!config.url || !config.key) {
-    document.getElementById('configModal').style.display = 'flex';
-    return;
-  }
+  if (!config.url || !config.key) { document.getElementById('configModal').style.display = 'flex'; return; }
   try {
-    supabaseClient = window.supabase.createClient(config.url, config.key);
+    supabase = window.supabase.createClient(config.url, config.key);
     loadMenu();
     startClock();
     document.getElementById('orderNum').textContent = orderCounter;
@@ -232,26 +197,18 @@ function saveConfig() {
 }
 
 function resetConfig() {
-  if (confirm('Reset config?')) {
-    localStorage.clear();
-    location.reload();
-  }
+  if (confirm('Reset config?')) { localStorage.clear(); location.reload(); }
 }
 
 async function loadMenu() {
   try {
-    const { data, error } = await supabaseClient
-      .from('menu_items')
-      .select('*')
-      .eq('restaurant_id', config.restaurantId)
-      .order('category').order('name');
+    const { data, error } = await supabase.from('menu_items').select('*').eq('restaurant_id', config.restaurantId).order('category').order('name');
     if (error) throw error;
     menuItems = data || [];
     categories = new Set(menuItems.map(m => m.category).filter(Boolean));
     renderCategories();
     renderMenu('all');
   } catch (e) {
-    console.error(e);
     toast('Erreur: ' + e.message, 'error');
   }
 }
@@ -261,9 +218,7 @@ function renderCategories() {
   catsEl.innerHTML = '<button class="cat active" data-cat="all" onclick="filterCat(\'all\', this)">Koulchi</button>';
   categories.forEach(cat => {
     const btn = document.createElement('button');
-    btn.className = 'cat';
-    btn.dataset.cat = cat;
-    btn.textContent = cat;
+    btn.className = 'cat'; btn.dataset.cat = cat; btn.textContent = cat;
     btn.onclick = () => filterCat(cat, btn);
     catsEl.appendChild(btn);
   });
@@ -279,20 +234,15 @@ function renderMenu(cat) {
   const grid = document.getElementById('menuGrid');
   const filtered = cat === 'all' ? menuItems : menuItems.filter(m => m.category === cat);
   if (filtered.length === 0) {
-    grid.innerHTML = '<div class="loading" style="grid-column:1/-1;">Ma kayn walou</div>';
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#888;">Ma kayn walou</div>';
     return;
   }
   grid.innerHTML = filtered.map(item => {
     const unavailable = !item.is_available;
-    return `
-      <div class="menu-card ${unavailable ? 'unavailable' : ''}" 
-           ${unavailable ? '' : `onclick="addItem('${item.id}', '${item.name.replace(/'/g, "\\'")}', ${item.price})"`}>
-        <div>
-          <p class="name">${item.name}</p>
-          ${unavailable ? '<p class="stock-warn">⚠ Stock khwa</p>' : ''}
-        </div>
-        <p class="price">${item.price} MAD</p>
-      </div>`;
+    return `<div class="menu-card ${unavailable ? 'unavailable' : ''}" ${unavailable ? '' : `onclick="addItem('${item.id}', '${item.name.replace(/'/g, "\\'")}', ${item.price})"`}>
+      <div><p class="name">${item.name}</p>${unavailable ? '<p class="stock-warn">⚠ Stock khwa</p>' : ''}</div>
+      <p class="price">${item.price} MAD</p>
+    </div>`;
   }).join('');
 }
 
@@ -321,25 +271,17 @@ function renderCart() {
   const itemsEl = document.getElementById('cartItems');
   const items = Object.values(cart);
   if (items.length === 0) {
-    itemsEl.innerHTML = '<div class="empty"><p>Panier khawi</p><p style="font-size:11px;margin-top:4px;">Click 3la plat bach t-zido</p></div>';
+    itemsEl.innerHTML = '<div class="empty"><p>Panier khawi</p><p style="font-size:10px;margin-top:4px;">Click 3la plat bach t-zido</p></div>';
     document.getElementById('payBtn').disabled = true;
     document.getElementById('subtotal').textContent = '0 MAD';
     document.getElementById('total').textContent = '0 MAD';
     return;
   }
-  itemsEl.innerHTML = items.map(i => `
-    <div class="cart-item">
-      <div class="cart-item-info">
-        <p class="cart-item-name">${i.name}</p>
-        <p class="cart-item-price">${i.price} MAD</p>
-      </div>
-      <div class="qty">
-        <button onclick="changeQty('${i.id}',-1)">−</button>
-        <span>${i.qty}</span>
-        <button onclick="changeQty('${i.id}',1)">+</button>
-      </div>
-      <span class="cart-item-total">${i.price * i.qty} MAD</span>
-    </div>`).join('');
+  itemsEl.innerHTML = items.map(i => `<div class="cart-item">
+    <div class="cart-item-info"><p class="cart-item-name">${i.name}</p><p class="cart-item-price">${i.price} MAD</p></div>
+    <div class="qty"><button onclick="changeQty('${i.id}',-1)">−</button><span>${i.qty}</span><button onclick="changeQty('${i.id}',1)">+</button></div>
+    <span class="cart-item-total">${i.price * i.qty} MAD</span>
+  </div>`).join('');
   const sub = items.reduce((s, i) => s + i.price * i.qty, 0);
   const delivery = ordType === 'delivery' ? 15 : 0;
   document.getElementById('subtotal').textContent = sub + ' MAD';
@@ -347,33 +289,21 @@ function renderCart() {
   document.getElementById('payBtn').disabled = false;
 }
 
-// ============================================================
-// VALIDATE: Ila livraison → customer modal, sinon → submit direct
-// ============================================================
 function handleValidate() {
   if (ordType === 'delivery') {
     document.getElementById('customerModal').style.display = 'flex';
     setTimeout(() => document.getElementById('custName').focus(), 100);
-  } else {
-    submitOrder(null);
-  }
+  } else { submitOrder(null); }
 }
 
-function closeCustomerModal() {
-  document.getElementById('customerModal').style.display = 'none';
-}
+function closeCustomerModal() { document.getElementById('customerModal').style.display = 'none'; }
 
 function submitOrderWithCustomer() {
   const name = document.getElementById('custName').value.trim();
   const phone = document.getElementById('custPhone').value.trim();
   const address = document.getElementById('custAddress').value.trim();
   const notes = document.getElementById('custNotes').value.trim();
-  
-  if (!name || !phone || !address) {
-    toast('3mer koulchi obligatoire!', 'error');
-    return;
-  }
-  
+  if (!name || !phone || !address) { toast('3mer koulchi obligatoire!', 'error'); return; }
   closeCustomerModal();
   submitOrder({ name, phone, address, notes });
 }
@@ -381,82 +311,38 @@ function submitOrderWithCustomer() {
 async function submitOrder(customer) {
   const items = Object.values(cart);
   if (items.length === 0) return;
-  
   const btn = document.getElementById('payBtn');
-  btn.disabled = true;
-  btn.textContent = 'Kay-sift...';
-  
+  btn.disabled = true; btn.textContent = 'Kay-sift...';
   try {
     const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
     const delivery = ordType === 'delivery' ? 15 : 0;
     const total = subtotal + delivery;
-    
-    const orderData = {
-      restaurant_id: config.restaurantId,
-      order_type: ordType,
-      status: 'pending',
-      payment_method: 'cash',
-      subtotal,
-      delivery_fee: delivery,
-      total
-    };
-    
+    const orderData = { restaurant_id: config.restaurantId, order_type: ordType, status: 'pending', payment_method: 'cash', subtotal, delivery_fee: delivery, total };
     if (customer) {
-      orderData.customer_name = customer.name;
-      orderData.customer_phone = customer.phone;
-      orderData.delivery_address = customer.address;
-      orderData.notes = customer.notes || null;
+      orderData.customer_name = customer.name; orderData.customer_phone = customer.phone;
+      orderData.delivery_address = customer.address; orderData.notes = customer.notes || null;
     }
-    
-    const { data: order, error: orderErr } = await supabaseClient
-      .from('orders')
-      .insert(orderData)
-      .select()
-      .single();
+    const { data: order, error: orderErr } = await supabase.from('orders').insert(orderData).select().single();
     if (orderErr) throw orderErr;
-    
-    const orderItemsData = items.map(i => ({
-      order_id: order.id,
-      menu_item_id: i.id,
-      quantity: i.qty,
-      unit_price: i.price,
-      subtotal: i.price * i.qty
-    }));
-    const { error: itemsErr } = await supabaseClient
-      .from('order_items')
-      .insert(orderItemsData);
+    const orderItemsData = items.map(i => ({ order_id: order.id, menu_item_id: i.id, quantity: i.qty, unit_price: i.price, subtotal: i.price * i.qty }));
+    const { error: itemsErr } = await supabase.from('order_items').insert(orderItemsData);
     if (itemsErr) throw itemsErr;
-    
-    const { error: acceptErr } = await supabaseClient
-      .from('orders')
-      .update({ status: 'accepted', accepted_at: new Date().toISOString() })
-      .eq('id', order.id);
+    const { error: acceptErr } = await supabase.from('orders').update({ status: 'accepted', accepted_at: new Date().toISOString() }).eq('id', order.id);
     if (acceptErr) throw acceptErr;
-    
     toast(`✓ Commande #${order.order_number} tsejjet! ${total} MAD`, 'success');
-    cart = {};
-    orderCounter++;
+    cart = {}; orderCounter++;
     document.getElementById('orderNum').textContent = orderCounter;
-    
-    // Clear customer fields
-    ['custName','custPhone','custAddress','custNotes'].forEach(id => {
-      document.getElementById(id).value = '';
-    });
-    
-    // Reset to dine_in
+    ['custName','custPhone','custAddress','custNotes'].forEach(id => document.getElementById(id).value = '');
     document.querySelectorAll('.ord-btn').forEach(b => b.classList.remove('active'));
     document.querySelector('[data-type="dine_in"]').classList.add('active');
     ordType = 'dine_in';
     document.getElementById('deliveryRow').style.display = 'none';
-    
     renderCart();
     setTimeout(loadMenu, 500);
   } catch (e) {
-    console.error(e);
     toast('Erreur: ' + e.message, 'error');
   } finally {
-    btn.disabled = false;
-    btn.innerHTML = 'Valider ↗';
+    btn.disabled = false; btn.innerHTML = 'Valider ↗';
   }
 }
 
@@ -471,8 +357,7 @@ function toast(msg, type = '') {
 function startClock() {
   function update() {
     const now = new Date();
-    document.getElementById('clock').textContent = 
-      String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+    document.getElementById('clock').textContent = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
   }
   update();
   setInterval(update, 30000);

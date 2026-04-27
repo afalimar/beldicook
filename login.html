@@ -3,256 +3,138 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#378ADD">
-<title>Login - Al Baraka</title>
+<meta name="theme-color" content="#1a3a8a">
+<title>Login - Beldi Cook</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(135deg,#378ADD 0%,#0C447C 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;color:#2c2c2a;}
-  
-  .login-card{background:#fff;border-radius:16px;padding:32px 28px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
-  
-  .logo{text-align:center;margin-bottom:24px;}
-  .logo .emoji{font-size:48px;display:block;margin-bottom:8px;}
-  .logo h1{font-size:22px;font-weight:500;color:#2c2c2a;}
-  .logo p{font-size:13px;color:#888;margin-top:4px;}
-  
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(135deg,#1a3a8a 0%,#0a1f4a 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;color:#222;}
+  .login-card{background:#fff;border-radius:16px;padding:36px 32px;max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+  .logo{text-align:center;margin-bottom:26px;}
+  .logo-circle{width:90px;height:90px;background:#FFD800;border:3px solid #1a3a8a;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;box-shadow:0 4px 12px rgba(26,58,138,0.2);}
+  .logo-circle .b{font-size:42px;font-weight:500;color:#1a3a8a;font-family:"Brush Script MT",cursive;line-height:1;}
+  .logo h1{font-size:24px;font-weight:500;color:#1a3a8a;font-family:"Brush Script MT",cursive;}
+  .logo .tagline{font-size:11px;color:#888;letter-spacing:2px;margin-top:4px;}
   .field{margin-bottom:14px;}
-  .field label{font-size:12px;color:#666;display:block;margin-bottom:6px;font-weight:500;}
-  .field input{width:100%;padding:12px 14px;border:1px solid #e5e3db;border-radius:10px;font-size:14px;font-family:inherit;transition:border-color 0.15s;}
-  .field input:focus{outline:none;border-color:#378ADD;}
-  
-  .btn{width:100%;padding:14px;background:#378ADD;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;transition:opacity 0.15s;margin-top:8px;}
+  .field label{font-size:11px;color:#666;display:block;margin-bottom:5px;font-weight:500;letter-spacing:0.5px;}
+  .field input{width:100%;padding:12px 14px;border:1.5px solid #e8e6dd;border-radius:8px;font-size:14px;font-family:inherit;}
+  .field input:focus{outline:none;border-color:#FFD800;}
+  .btn{width:100%;padding:14px;background:#1a3a8a;color:#FFD800;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;margin-top:8px;}
   .btn:hover{opacity:0.92;}
   .btn:disabled{opacity:0.5;cursor:not-allowed;}
-  
   .err{background:#FCEBEB;color:#791F1F;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none;}
   .err.show{display:block;}
-  
   .success{background:#EAF3DE;color:#27500A;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none;}
   .success.show{display:block;}
-  
-  .divider{text-align:center;margin:20px 0;color:#bbb;font-size:11px;text-transform:uppercase;letter-spacing:1px;}
-  
-  .config-section{background:#f7f6f3;border-radius:10px;padding:14px;margin-top:20px;}
+  .config-section{background:#fafaf7;border-radius:10px;padding:14px;margin-top:20px;}
   .config-section summary{cursor:pointer;font-size:13px;color:#666;font-weight:500;}
-  .config-section summary:hover{color:#378ADD;}
   .config-section input{margin-top:8px;font-family:monospace;font-size:11px;}
-  
-  .footer{text-align:center;margin-top:20px;font-size:12px;color:#888;}
-  
+  .footer{text-align:center;margin-top:24px;font-size:11px;color:#aaa;letter-spacing:1px;}
   .role-options{display:none;}
   .role-options.show{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
-  .role-card{padding:14px;border:2px solid #e5e3db;border-radius:10px;cursor:pointer;text-align:left;transition:all 0.15s;}
-  .role-card:hover{border-color:#378ADD;}
+  .role-card{padding:14px;border:2px solid #e8e6dd;border-radius:10px;cursor:pointer;text-align:left;background:#fff;}
+  .role-card:hover{border-color:#FFD800;background:#fafaf7;}
   .role-card .icon{font-size:24px;margin-bottom:6px;}
-  .role-card .name{font-size:14px;font-weight:500;color:#2c2c2a;}
+  .role-card .name{font-size:14px;font-weight:500;color:#1a3a8a;}
   .role-card .desc{font-size:11px;color:#888;margin-top:2px;}
 </style>
 </head>
 <body>
-
 <div class="login-card">
   <div class="logo">
-    <span class="emoji">🍽️</span>
-    <h1>Al Baraka</h1>
-    <p>Sign in to continue</p>
+    <div class="logo-circle"><div class="b">B</div></div>
+    <h1>Beldi Cook</h1>
+    <div class="tagline">MOROCCAN TASTE</div>
   </div>
-  
   <div class="err" id="err"></div>
   <div class="success" id="success"></div>
-  
   <div id="loginForm">
     <div class="field">
-      <label>Email</label>
-      <input type="email" id="email" placeholder="staff@albaraka.ma" autocomplete="email">
+      <label>EMAIL</label>
+      <input type="email" id="email" placeholder="staff@beldicook.ma" autocomplete="email">
     </div>
-    
     <div class="field">
-      <label>Password</label>
+      <label>PASSWORD</label>
       <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
     </div>
-    
     <button class="btn" id="loginBtn" onclick="login()">Sign In</button>
   </div>
-  
-  <!-- Role redirect (mnin koul wahed kay-3andou access l'plusieurs apps) -->
-  <div class="role-options" id="roleOptions">
-    <p style="font-size:13px;color:#666;text-align:center;margin-bottom:8px;">Khtar app:</p>
-  </div>
-  
+  <div class="role-options" id="roleOptions"></div>
   <details class="config-section">
     <summary>⚙️ Setup Supabase (awel marra)</summary>
-    <div class="field" style="margin-top:8px;">
-      <label>Supabase URL</label>
-      <input type="text" id="sbUrl" placeholder="https://xxx.supabase.co">
-    </div>
-    <div class="field">
-      <label>Anon Key</label>
-      <input type="text" id="sbKey" placeholder="eyJhbGc...">
-    </div>
+    <div class="field" style="margin-top:8px;"><label>Supabase URL</label><input type="text" id="sbUrl" placeholder="https://xxx.supabase.co"></div>
+    <div class="field"><label>Anon Key</label><input type="text" id="sbKey" placeholder="eyJhbGc..."></div>
     <button class="btn" style="font-size:13px;padding:10px;" onclick="saveSupabaseConfig()">Save Config</button>
   </details>
-  
-  <div class="footer">
-    Restaurant Management System
-  </div>
+  <div class="footer">BELDI COOK · RESTAURANT MANAGEMENT</div>
 </div>
-
 <script>
 let supabase = null;
-
-// ============================================================
-// LOAD CONFIG
-// ============================================================
 function init() {
   const url = localStorage.getItem('sb_url');
   const key = localStorage.getItem('sb_key');
-  
-  if (!url || !key) {
-    document.querySelector('.config-section').open = true;
-    showError('3mer Supabase config awel');
-    return;
-  }
-  
-  // Pre-fill if exists
+  if (!url || !key) { document.querySelector('.config-section').open = true; showError('3mer Supabase config awel'); return; }
   document.getElementById('sbUrl').value = url;
   document.getElementById('sbKey').value = key;
-  
-  try {
-    supabase = window.supabase.createClient(url, key);
-    
-    // Check ila déjà logged in
-    checkExistingSession();
-  } catch (e) {
-    showError('Config ghalta: ' + e.message);
-  }
+  try { supabase = window.supabase.createClient(url, key); checkExistingSession(); } catch (e) { showError('Config ghalta: ' + e.message); }
 }
-
 async function checkExistingSession() {
   const { data: { session } } = await supabase.auth.getSession();
   if (session) {
-    // Already logged in - get role and show app options
-    const { data: user } = await supabase
-      .from('users')
-      .select('role, full_name')
-      .eq('id', session.user.id)
-      .single();
-    
-    if (user) {
-      showRoleOptions(user.role, user.full_name);
-    }
+    const { data: user } = await supabase.from('users').select('role, full_name').eq('id', session.user.id).single();
+    if (user) showRoleOptions(user.role, user.full_name);
   }
 }
-
 function saveSupabaseConfig() {
   const url = document.getElementById('sbUrl').value.trim();
   const key = document.getElementById('sbKey').value.trim();
-  
-  if (!url || !key) {
-    showError('3mer URL ou Key!');
-    return;
-  }
-  
+  if (!url || !key) { showError('3mer URL ou Key!'); return; }
   localStorage.setItem('sb_url', url);
   localStorage.setItem('sb_key', key);
   showSuccess('Config saved! Login daba');
   init();
 }
-
-// ============================================================
-// LOGIN
-// ============================================================
 async function login() {
-  if (!supabase) {
-    showError('Setup Supabase config awel');
-    return;
-  }
-  
+  if (!supabase) { showError('Setup Supabase config awel'); return; }
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
-  
-  if (!email || !password) {
-    showError('3mer email ou password');
-    return;
-  }
-  
+  if (!email || !password) { showError('3mer email ou password'); return; }
   const btn = document.getElementById('loginBtn');
-  btn.disabled = true;
-  btn.textContent = 'Kay-loginu...';
-  hideMessages();
-  
+  btn.disabled = true; btn.textContent = 'Kay-loginu...';
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-    
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
-    
-    // Khdem role
-    const { data: userData, error: userErr } = await supabase
-      .from('users')
-      .select('role, full_name, is_active')
-      .eq('id', data.user.id)
-      .single();
-    
+    const { data: userData, error: userErr } = await supabase.from('users').select('role, full_name, is_active').eq('id', data.user.id).single();
     if (userErr) throw new Error('User profile not found. Contact admin.');
-    
-    if (!userData.is_active) {
-      throw new Error('Account dyalek mse(h)bbed. Contact boss.');
-    }
-    
+    if (!userData.is_active) throw new Error('Account dyalek mse(h)bbed.');
     showSuccess(`Mer7ba ${userData.full_name}! 👋`);
-    
-    setTimeout(() => {
-      showRoleOptions(userData.role, userData.full_name);
-    }, 800);
-    
+    setTimeout(() => showRoleOptions(userData.role, userData.full_name), 800);
   } catch (e) {
-    console.error(e);
     showError(getErrorMessage(e.message));
-    btn.disabled = false;
-    btn.textContent = 'Sign In';
+    btn.disabled = false; btn.textContent = 'Sign In';
   }
 }
-
-// ============================================================
-// REDIRECT BASED ON ROLE
-// ============================================================
 function showRoleOptions(role, name) {
   document.getElementById('loginForm').style.display = 'none';
   document.querySelector('.config-section').style.display = 'none';
-  
   const container = document.getElementById('roleOptions');
   container.classList.add('show');
-  container.innerHTML = `<p style="font-size:14px;color:#666;text-align:center;margin-bottom:12px;">Mer7ba ${escapeHtml(name)}! Khtar app:</p>`;
-  
+  container.innerHTML = `<p style="font-size:14px;color:#1a3a8a;text-align:center;margin-bottom:12px;font-weight:500;">Mer7ba ${escapeHtml(name)}! Khtar app:</p>`;
   const apps = getAppsForRole(role);
-  
   apps.forEach(app => {
     const card = document.createElement('div');
     card.className = 'role-card';
     card.onclick = () => window.location.href = app.url;
-    card.innerHTML = `
-      <div class="icon">${app.icon}</div>
-      <div class="name">${app.name}</div>
-      <div class="desc">${app.desc}</div>
-    `;
+    card.innerHTML = `<div class="icon">${app.icon}</div><div class="name">${app.name}</div><div class="desc">${app.desc}</div>`;
     container.appendChild(card);
   });
-  
-  // Logout button
   const logoutBtn = document.createElement('button');
   logoutBtn.className = 'btn';
-  logoutBtn.style.background = '#f1f0ec';
-  logoutBtn.style.color = '#666';
-  logoutBtn.style.marginTop = '12px';
+  logoutBtn.style.background = '#fafaf7'; logoutBtn.style.color = '#666'; logoutBtn.style.marginTop = '12px';
   logoutBtn.textContent = 'Sign Out';
-  logoutBtn.onclick = logout;
+  logoutBtn.onclick = async () => { await supabase.auth.signOut(); location.reload(); };
   container.appendChild(logoutBtn);
 }
-
 function getAppsForRole(role) {
   const all = {
     pos: { icon: '💰', name: 'POS Caisse', desc: 'Prise de commandes', url: 'pos_caisse_v2.html' },
@@ -260,7 +142,6 @@ function getAppsForRole(role) {
     livreur: { icon: '🏍️', name: 'App Livreur', desc: 'Livraisons', url: 'app_livreur.html' },
     admin: { icon: '⚙️', name: 'Admin Panel', desc: 'Manage staff', url: 'admin_panel.html' }
   };
-  
   switch(role) {
     case 'admin': return [all.admin, all.pos, all.kitchen, all.livreur];
     case 'manager': return [all.pos, all.kitchen, all.livreur];
@@ -270,51 +151,15 @@ function getAppsForRole(role) {
     default: return [all.pos];
   }
 }
-
-async function logout() {
-  await supabase.auth.signOut();
-  location.reload();
-}
-
-// ============================================================
-// UTILS
-// ============================================================
 function getErrorMessage(msg) {
   if (msg.includes('Invalid login credentials')) return 'Email wla password ghaltin';
-  if (msg.includes('Email not confirmed')) return 'Email ma t-confirmach. Check inbox.';
-  if (msg.includes('User profile not found')) return msg;
-  if (msg.includes('mse(h)bbed')) return msg;
+  if (msg.includes('Email not confirmed')) return 'Email ma t-confirmach.';
   return 'Erreur: ' + msg;
 }
-
-function showError(msg) {
-  const el = document.getElementById('err');
-  el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 5000);
-}
-
-function showSuccess(msg) {
-  const el = document.getElementById('success');
-  el.textContent = msg;
-  el.classList.add('show');
-}
-
-function hideMessages() {
-  document.getElementById('err').classList.remove('show');
-  document.getElementById('success').classList.remove('show');
-}
-
-function escapeHtml(s) {
-  if (!s) return '';
-  return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
-}
-
-// Enter key = login
-document.getElementById('password').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') login();
-});
-
+function showError(msg) { const el = document.getElementById('err'); el.textContent = msg; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 5000); }
+function showSuccess(msg) { const el = document.getElementById('success'); el.textContent = msg; el.classList.add('show'); }
+function escapeHtml(s) { if (!s) return ''; return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+document.getElementById('password').addEventListener('keydown', (e) => { if (e.key === 'Enter') login(); });
 init();
 </script>
 </body>
